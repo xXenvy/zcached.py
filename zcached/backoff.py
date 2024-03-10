@@ -1,5 +1,12 @@
 from __future__ import annotations
 
+try:
+    from typing import Self
+except ImportError:
+    from typing_extensions import Self
+
+    # For older python versions.
+
 
 class ExponentialBackoff:
     """
@@ -34,7 +41,7 @@ class ExponentialBackoff:
     def __repr__(self) -> str:
         return f"<ExponentialBackoff(current={self.current}, next={self.next}, total={self.total})>"
 
-    def __iter__(self) -> ExponentialBackoff:
+    def __iter__(self) -> Self:
         return self
 
     def __next__(self) -> float:

@@ -4,7 +4,10 @@ import pytest
 from zcached import Result
 
 
-@pytest.mark.parametrize("value,error", [(b"foo", None), (b"", "Error!"), (b"\r\nfoo", None), (b"\r\n", None)])
+@pytest.mark.parametrize(
+    "value,error",
+    [(b"foo", None), (b"", "Error!"), (b"\r\nfoo", None), (b"\r\n", None)],
+)
 def test_result(value: bytes, error: str | None):
     result = Result(value, error)
     result2 = Result(b"\r\n", None)
@@ -23,4 +26,3 @@ def test_result(value: bytes, error: str | None):
     if result == result2:
         assert result.value == result2.value
         assert result.error == result2.error
-

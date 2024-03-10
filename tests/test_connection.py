@@ -5,7 +5,9 @@ IS_SERVER_RUNNING = False
 
 
 def test_connection():
-    connection = Connection(host="localhost", port=5555, connection_attempts=2, buff_size=2)
+    connection = Connection(
+        host="localhost", port=5555, connection_attempts=2, buff_size=2
+    )
 
     assert connection.host == "localhost"
     assert connection.port == 5555
@@ -30,7 +32,6 @@ def test_connection():
 
         for _ in range(5):
             result: Result = connection.send(b"*1\r\n$4\r\nPING\r\n")
-            assert result.success and bytes(result) == b'+PONG\r\n'
+            assert result.success and bytes(result) == b"+PONG\r\n"
 
         assert connection.receive() is None
-

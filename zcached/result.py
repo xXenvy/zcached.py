@@ -32,7 +32,8 @@ class Result:
         Error message detailing why the operation failed, value is None if
         operation was successful.
     """
-    __slots__ = ('value', 'error')
+
+    __slots__ = ("value", "error")
 
     def __init__(self, value: bytes, error: str | None = None):
         # TODO: Add deserializer.

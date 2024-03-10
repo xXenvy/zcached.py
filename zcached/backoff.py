@@ -19,6 +19,7 @@ class ExponentialBackoff:
     current: :class:`float`
         The current value of the exponential.
     """
+
     __slots__ = ("current", "_multiplier", "_max", "_initial", "_total")
 
     def __init__(self, initial: float, multiplier: float, max_value: float) -> None:
@@ -26,7 +27,7 @@ class ExponentialBackoff:
 
         self._multiplier: float = multiplier
         self._max: float = max_value
-        self._total: float = .0
+        self._total: float = 0.0
 
         self._initial: float = initial
 
@@ -57,4 +58,4 @@ class ExponentialBackoff:
     def reset(self) -> None:
         """Method to reset the exponential backoff."""
         self.current = 0
-        self._total = .0
+        self._total = 0.0

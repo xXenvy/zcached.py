@@ -2,7 +2,7 @@ import pytest
 from zcached import ExponentialBackoff
 
 
-@pytest.mark.parametrize('initial', (1, 2, 20, 0.5, 0.1, 5))
+@pytest.mark.parametrize("initial", (1, 2, 20, 0.5, 0.1, 5))
 def test_backoff(initial: int):
     exponential = ExponentialBackoff(initial, 2, 10)
 

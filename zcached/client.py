@@ -7,7 +7,7 @@ from .serializer import Serializer, SupportedTypes
 if TYPE_CHECKING:
     from .result import Result
 
-ConnectionT = TypeVar('ConnectionT', bound=AbstractConnection)
+ConnectionT = TypeVar("ConnectionT", bound=AbstractConnection)
 
 
 class ZCached(Generic[ConnectionT]):
@@ -24,6 +24,7 @@ class ZCached(Generic[ConnectionT]):
     connection: :class:`Connection`
         Connection object used by this class.
     """
+
     __slots__ = ("connection",)
 
     def __init__(self, connection: ConnectionT) -> None:
@@ -75,7 +76,9 @@ class ZCached(Generic[ConnectionT]):
             The value of the record.
         """
         serializer: Serializer = Serializer(value)
-        command: str = f"*3\r\n$3\r\nSET\r\n${len(key)}\r\n{key}\r\n{serializer.serialize()}"
+        command: str = (
+            f"*3\r\n$3\r\nSET\r\n${len(key)}\r\n{key}\r\n{serializer.serialize()}"
+        )
         return self.connection.send(command.encode())
 
     def delete(self, key: str) -> Result:

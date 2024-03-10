@@ -2,7 +2,7 @@ from typing import Union, TypeVar, Generic, Callable, Type
 
 SupportedTypes = Union[str, int, float, bool, list, tuple, dict, set, None]
 
-T = TypeVar('T', bound=SupportedTypes)
+T = TypeVar("T", bound=SupportedTypes)
 
 
 class Serializer(Generic[T]):
@@ -24,7 +24,8 @@ class Serializer(Generic[T]):
     TypeError
         If the specified type is not supported by the serializer.
     """
-    __slots__ = ('raw_value',)
+
+    __slots__ = ("raw_value",)
 
     def __init__(self, value: T) -> None:
         if not isinstance(value, SupportedTypes):
@@ -90,7 +91,9 @@ class Serializer(Generic[T]):
     def list(self) -> str:
         """Returns the serialized value of type list."""
         assert isinstance(self.raw_value, (list, tuple, set))
-        return f"*{len(self.raw_value)}\r\n" + "".join((Serializer(item).serialize() for item in self.raw_value))
+        return f"*{len(self.raw_value)}\r\n" + "".join(
+            (Serializer(item).serialize() for item in self.raw_value)
+        )
 
     @property
     def tuple(self) -> str:

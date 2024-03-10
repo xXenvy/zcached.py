@@ -32,21 +32,16 @@ def test_basic_serializer():
 
 def test_dict_serializer():
     dict_serializer: Serializer[dict] = Serializer(
-        {
-            "a": 10,
-            "b": 1.0,
-            "c": "text",
-            "d": True,
-            "e": False,
-            "f": None
-        }
+        {"a": 10, "b": 1.0, "c": "text", "d": True, "e": False, "f": None}
     )
     assert isinstance(dict_serializer.raw_value, dict)
-    assert dict_serializer.serialize() == ('%6\r\n$1\r\na\r\n:10\r\n$1\r\nb\r\n,1.0\r\n$1\r\nc\r\n'
-                                           '$4\r\ntext\r\n$1\r\nd\r\n#t\r\n$1\r\ne\r\n#f\r\n$1\r\nf\r\n_\r\n')
+    assert dict_serializer.serialize() == (
+        "%6\r\n$1\r\na\r\n:10\r\n$1\r\nb\r\n,1.0\r\n$1\r\nc\r\n"
+        "$4\r\ntext\r\n$1\r\nd\r\n#t\r\n$1\r\ne\r\n#f\r\n$1\r\nf\r\n_\r\n"
+    )
 
 
-@pytest.mark.parametrize('value', tuple(test_values.keys()))
+@pytest.mark.parametrize("value", tuple(test_values.keys()))
 def test_serializer(value: Any):
     serializer: Serializer = Serializer(value)
 
@@ -61,7 +56,7 @@ def test_list_serializer():
     arrays: list[list[Any]] = []
 
     for index, value in enumerate(test_values.keys()):
-        arrays.append(list(test_values.keys())[:index + 1])
+        arrays.append(list(test_values.keys())[: index + 1])
 
     for array in arrays:
         expected_expression: str = f"*{len(array)}\r\n"
@@ -79,7 +74,7 @@ def test_list_serializer():
         assert serializer.serialize() == expected_expression
 
 
-@pytest.mark.parametrize('value', ("bul^)^+kstr#!ing$!%@#" * 25 * x for x in range(5)))
+@pytest.mark.parametrize("value", ("bul^)^+kstr#!ing$!%@#" * 25 * x for x in range(5)))
 def test_bulk_serializer(value: str):
     expected_expression: str = f"${len(value)}\r\n{value}\r\n"
 

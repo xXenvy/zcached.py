@@ -11,27 +11,34 @@ from .result import Result
 
 
 class AbstractConnection(ABC):
+    __slots__ = ()
 
     @abstractmethod
-    def connect(self) -> None: ...
+    def connect(self) -> None:
+        ...
 
     @abstractmethod
-    def send(self, data: bytes) -> Result: ...
+    def send(self, data: bytes) -> Result:
+        ...
 
     @abstractmethod
-    def receive(self) -> bytes | None: ...
-
-    @property
-    @abstractmethod
-    def host(self) -> str: ...
-
-    @property
-    @abstractmethod
-    def port(self) -> int: ...
+    def receive(self) -> bytes | None:
+        ...
 
     @property
     @abstractmethod
-    def is_connected(self) -> bool: ...
+    def host(self) -> str:
+        ...
+
+    @property
+    @abstractmethod
+    def port(self) -> int:
+        ...
+
+    @property
+    @abstractmethod
+    def is_connected(self) -> bool:
+        ...
 
 
 class Connection(AbstractConnection):
@@ -63,16 +70,25 @@ class Connection(AbstractConnection):
     connection_attempts:
         The maximum number of attempts to establish a connection with the server.
     """
-    __slots__ = ("socket", "buff_size", "connection_attempts", "_backoff", "_port", "_host", "_connected")
+
+    __slots__ = (
+        "socket",
+        "buff_size",
+        "connection_attempts",
+        "_backoff",
+        "_port",
+        "_host",
+        "_connected",
+    )
 
     def __init__(
-            self,
-            host: str,
-            port: int,
-            backoff: ExponentialBackoff = ExponentialBackoff(0.5, 2, 4),
-            buff_size: int = 1024,
-            connection_attempts: int = 5):
-
+        self,
+        host: str,
+        port: int,
+        backoff: ExponentialBackoff = ExponentialBackoff(0.5, 2, 4),
+        buff_size: int = 1024,
+        connection_attempts: int = 5,
+    ):
         self.socket: socket = socket(AF_INET, SOCK_STREAM)
         self.buff_size: int = buff_size
         self.connection_attempts: int = connection_attempts
@@ -117,7 +133,7 @@ class Connection(AbstractConnection):
             The method has already been called once successfully.
         """
         if self._connected:
-            raise RuntimeError('The connection has already been established once.')
+            raise RuntimeError("The connection has already been established once.")
 
         logging.debug(f"Connecting to {self.host}:{self.port}...")
 
@@ -171,7 +187,7 @@ class Connection(AbstractConnection):
 
     def wait_for_response(self) -> Result:
         """A loop to wait for the response from the server."""
-        backoff: ExponentialBackoff = ExponentialBackoff(.1, 1.5, .5)
+        backoff: ExponentialBackoff = ExponentialBackoff(0.1, 1.5, 0.5)
 
         total_bytes: bytes = bytes()
         transfer_complete: bool = False
@@ -186,7 +202,9 @@ class Connection(AbstractConnection):
                     transfer_complete = True
                 else:
                     # We haven't received any data yet.
-                    logging.debug(f"There is no data in the socket. Timeout: {timeout}s.")
+                    logging.debug(
+                        f"There is no data in the socket. Timeout: {timeout}s."
+                    )
                     sleep(timeout)
                     continue
 

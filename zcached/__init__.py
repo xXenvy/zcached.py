@@ -7,7 +7,13 @@ from .result import Result
 from .serializer import Serializer, SupportedTypes
 
 __all__: Final[Tuple[str, ...]] = (
-    'ZCached', 'Connection', 'AbstractConnection', 'ExponentialBackoff', 'Result', 'Serializer', 'SupportedTypes'
+    "ZCached",
+    "Connection",
+    "AbstractConnection",
+    "ExponentialBackoff",
+    "Result",
+    "Serializer",
+    "SupportedTypes",
 )
 
-__version__: Final[str] = '0.1.0'
+__version__: Final[str] = "0.1.0"

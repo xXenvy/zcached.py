@@ -18,7 +18,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Install dependencies
-        run: pip install pyright
+        run: pip install pyright pytest
 
       - name: Set up pyright
         run: echo "PYRIGHT_VERSION=$(python -c 'import pyright; print(pyright.__pyright_version__)')" >> $GITHUB_ENV

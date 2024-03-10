@@ -1,11 +1,8 @@
 from __future__ import annotations
+from typing import TYPE_CHECKING
 
-try:
-    from typing import Self
-except ImportError:
+if TYPE_CHECKING:
     from typing_extensions import Self
-
-    # For older python versions.
 
 
 class ExponentialBackoff:

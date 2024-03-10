@@ -3,7 +3,7 @@ from typing import Any
 import pytest
 from zcached import Serializer
 
-test_values: dict[Any, str] = {
+test_values = {
     "test_string_new_abc_test": "$24\r\ntest_string_new_abc_test\r\n",
     52: ":52\r\n",
     0.01: ",0.01\r\n",

@@ -19,7 +19,7 @@ test_values: dict[Any, str] = {
 
 def test_basic_serializer():
     with pytest.raises(TypeError):
-        Serializer(object())
+        Serializer(object())  # type: ignore
 
     serializer: Serializer[str] = Serializer("string_test")
 

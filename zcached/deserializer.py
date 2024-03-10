@@ -1,0 +1,3 @@
+class Deserializer:
+    def __init__(self, payload: bytes) -> None:
+        ...

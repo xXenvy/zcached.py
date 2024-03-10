@@ -1,12 +1,25 @@
 name: Pyright
 
-on:
-  push:
-    branches:
-      - master
-  pull_request:
+on: [push]
 
 jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.8", "3.9"]
+      fail-fast: false
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: pip install pyright pytest pytest-cov
+
+      - name: Run pytest
+        run: |
+          coverage run -m pytest -v -s
+
   pyright:
     runs-on: ubuntu-latest
     strategy:
@@ -40,6 +53,3 @@ jobs:
           python-platform: Windows
           no-comments: true
           warnings: true
-      - name: Run pytest
-        run: |
-          coverage run -m pytest  -v -s

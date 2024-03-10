@@ -1,5 +1,5 @@
 import pytest
-from zcached import Connection, Result
+from zcached import Connection, Result, ZCached
 
 IS_SERVER_RUNNING = False
 
@@ -30,8 +30,31 @@ def test_connection():
         with pytest.raises(RuntimeError):
             connection.connect()
 
+        client: ZCached[Connection] = ZCached(connection)
+
         for _ in range(5):
-            result: Result = connection.send(b"*1\r\n$4\r\nPING\r\n")
+            result: Result = client.ping()
             assert result.success and bytes(result) == b"+PONG\r\n"
 
         assert connection.receive() is None
+
+        result = client.set(
+            "randomkey",
+            {
+                "key": "value1",
+                "key2": 1233,
+                "key3": -32,
+                "key4": 5.4,
+                "key5": True,
+                "key6": False,
+                "key7": None,
+                "key8": ["abc", 123, False, None, True, {"a": "b", "c": "d"}],
+                "key9": "4343434343",
+                "key10": (-50, -60, -70, None),
+            },
+        )
+        assert result.error is None
+
+        result = client.get("randomkey")
+        assert result.error is None and len(bytes(result)) == 251
+        client.flush()

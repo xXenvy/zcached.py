@@ -1,7 +1,6 @@
-from zcached import ZCached, Connection, Result
+from zcached import ZCached, Result
 
-connection = Connection(host="localhost", port=5555)
-client = ZCached(connection)
+client = ZCached(host="localhost", port=1234)
 
 result: Result = client.ping()
 

@@ -3,45 +3,13 @@ from __future__ import annotations
 import logging
 from socket import socket, SOCK_STREAM, AF_INET
 
-from abc import ABC, abstractmethod
 from time import sleep
 
 from .backoff import ExponentialBackoff
 from .result import Result
 
 
-class AbstractConnection(ABC):
-    __slots__ = ()
-
-    @abstractmethod
-    def connect(self) -> None:
-        ...
-
-    @abstractmethod
-    def send(self, data: bytes) -> Result:
-        ...
-
-    @abstractmethod
-    def receive(self) -> bytes | None:
-        ...
-
-    @property
-    @abstractmethod
-    def host(self) -> str:
-        ...
-
-    @property
-    @abstractmethod
-    def port(self) -> int:
-        ...
-
-    @property
-    @abstractmethod
-    def is_connected(self) -> bool:
-        ...
-
-
-class Connection(AbstractConnection):
+class Connection:
     """
     An object to establish and manage a connection with the database server.
 

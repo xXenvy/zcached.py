@@ -1,16 +1,14 @@
 from __future__ import annotations
-from typing import TypeVar, Generic, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
-from .connection import AbstractConnection
 from .serializer import Serializer, SupportedTypes
 
 if TYPE_CHECKING:
     from .result import Result
+    from .connection import Connection
 
-ConnectionT = TypeVar("ConnectionT", bound=AbstractConnection)
 
-
-class ZCached(Generic[ConnectionT]):
+class ZCached:
     """
     ZCached client to connect to the server and send commands.
 
@@ -27,8 +25,8 @@ class ZCached(Generic[ConnectionT]):
 
     __slots__ = ("connection",)
 
-    def __init__(self, connection: ConnectionT) -> None:
-        self.connection: ConnectionT = connection
+    def __init__(self, connection: Connection) -> None:
+        self.connection: Connection = connection
 
         if not self.connection.is_connected:
             self.connection.connect()

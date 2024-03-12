@@ -62,7 +62,7 @@ class Connection:
         self._port: int = port
 
         self._connected: bool = False
-        self._backoff: ExponentialBackoff = ExponentialBackoff(0.5, 2, 3)
+        self._backoff = ExponentialBackoff(0.5, 2, 3)
 
     def __repr__(self) -> str:
         return f"<Connection(host={self.host}, port={self.port}, buff_size={self.buff_size})>"

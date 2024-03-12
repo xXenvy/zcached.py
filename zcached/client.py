@@ -27,9 +27,7 @@ class ZCached:
 
     def __init__(self, connection: Connection) -> None:
         self.connection: Connection = connection
-
-        if not self.connection.is_connected:
-            self.connection.connect()
+        self.connection.connect()
 
     def __repr__(self) -> str:
         return f"ZCached(connection={self.connection})"

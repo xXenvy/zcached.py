@@ -17,8 +17,9 @@ def test_connection():
     assert connection.socket.getblocking() is True
 
     if not IS_SERVER_RUNNING:
-        with pytest.raises(ConnectionRefusedError):
-            connection.connect()
+        connection.connect()
+        assert not connection.is_connected
+
         with pytest.raises(OSError):
             connection.receive()
         with pytest.raises(OSError):

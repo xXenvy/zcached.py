@@ -94,15 +94,7 @@ class Connection:
     def connect(self) -> None:
         """
         Method to connect a socket to a database server.
-
-        Raises
-        ------
-        RuntimeError
-            The method has already been called once successfully.
         """
-        if self._connected:
-            raise RuntimeError("The connection has already been established once.")
-
         logging.debug(f"Connecting to {self.host}:{self.port}...")
 
         for attempt, timeout in enumerate(self._backoff):
@@ -115,7 +107,7 @@ class Connection:
                 break
             except Exception as exception:
                 if attempt + 1 >= self.connection_attempts:
-                    raise exception
+                    break
 
                 logging.exception(exception)
                 logging.warning("Connecting to the server failed. Retrying...")
@@ -148,8 +140,8 @@ class Connection:
             self.socket.send(data)
         except BrokenPipeError as exception:
             # This exception occurs when the socket has no connection to the database server.
-            # We do not call it because the `wait_for_response` method will return Result with this error.
             logging.exception(exception)
+            return Result.fail("The connection has been terminated.")
 
         return self.wait_for_response()
 

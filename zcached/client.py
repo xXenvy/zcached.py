@@ -2,10 +2,11 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from .serializer import Serializer, SupportedTypes
+from .connection import Connection
 
 if TYPE_CHECKING:
     from .result import Result
-    from .connection import Connection
+    from typing_extensions import Self
 
 
 class ZCached:
@@ -14,8 +15,17 @@ class ZCached:
 
     Parameters
     ----------
-    connection:
-        Connection object used by this class.
+    host:
+        Server host address.
+    port:
+        Server port number.
+    buff_size:
+        The size of the buffer for receiving data from the server, in bytes.
+        Larger values for buff_size may allow for more data to be received in a single operation,
+        while smaller values can be more memory-efficient but slower.
+    connection_attempts:
+        The maximum number of attempts to establish a connection with the server.
+        If the maximum number of attempts is exceeded, an error will be raised.
 
     Attributes
     ----------
@@ -25,8 +35,16 @@ class ZCached:
 
     __slots__ = ("connection",)
 
-    def __init__(self, connection: Connection) -> None:
-        self.connection: Connection = connection
+    def __init__(
+        self,
+        host: str,
+        port: int = 7556,
+        buff_size: int = 1024,
+        connection_attempts: int = 3,
+    ) -> None:
+        self.connection: Connection = Connection(
+            host, port, buff_size, connection_attempts
+        )
         self.connection.connect()
 
     def __repr__(self) -> str:
@@ -88,3 +106,20 @@ class ZCached:
         """
         command: str = f"*2\r\n$6\r\nDELETE\r\n${len(key)}\r\n{key}\r\n"
         return self.connection.send(command.encode())
+
+    @classmethod
+    def from_connection(cls, connection: Connection) -> Self:
+        """
+        Classmethod to create client from existing connection.
+
+        Parameters
+        ----------
+        connection:
+            Created connection object.
+        """
+        return cls(
+            host=connection.host,
+            port=connection.port,
+            buff_size=connection.buff_size,
+            connection_attempts=connection.connection_attempts,
+        )

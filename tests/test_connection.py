@@ -31,13 +31,13 @@ def test_connection():
         with pytest.raises(RuntimeError):
             connection.connect()
 
-        client = ZCached(connection)
+        client = ZCached.from_connection(connection)
 
         for _ in range(5):
             result: Result = client.ping()
             assert result.success and bytes(result) == b"+PONG\r\n"
 
-        assert connection.receive() is None
+        assert client.connection.receive() is None
 
         result = client.set(
             "randomkey",

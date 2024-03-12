@@ -19,8 +19,6 @@ class Connection:
         The host address of the server to connect to.
     port:
         The port number of the server to connect to.
-    backoff:
-        An exponential backoff strategy used for the initial connection attempt.
     buff_size:
         The size of the buffer for receiving data from the server, in bytes.
         Larger values for buff_size may allow for more data to be received in a single operation,
@@ -53,9 +51,8 @@ class Connection:
         self,
         host: str,
         port: int,
-        backoff: ExponentialBackoff = ExponentialBackoff(0.5, 2, 4),
         buff_size: int = 1024,
-        connection_attempts: int = 5,
+        connection_attempts: int = 3,
     ):
         self.socket: socket = socket(AF_INET, SOCK_STREAM)
         self.buff_size: int = buff_size
@@ -65,7 +62,7 @@ class Connection:
         self._port: int = port
 
         self._connected: bool = False
-        self._backoff: ExponentialBackoff = backoff
+        self._backoff: ExponentialBackoff = ExponentialBackoff(0.5, 2, 3)
 
     def __repr__(self) -> str:
         return f"<Connection(host={self.host}, port={self.port}, buff_size={self.buff_size})>"

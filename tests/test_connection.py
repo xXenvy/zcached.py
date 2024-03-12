@@ -31,7 +31,7 @@ def test_connection():
         with pytest.raises(RuntimeError):
             connection.connect()
 
-        client: ZCached[Connection] = ZCached(connection)
+        client = ZCached(connection)
 
         for _ in range(5):
             result: Result = client.ping()

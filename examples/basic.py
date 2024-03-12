@@ -1,7 +1,7 @@
 from zcached import ZCached, Connection, Result
 
 connection = Connection(host="localhost", port=5555)
-client: ZCached[Connection] = ZCached(connection)
+client = ZCached(connection)
 
 result: Result = client.ping()
 

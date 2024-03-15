@@ -107,6 +107,16 @@ class ZCached:
         command: str = f"*2\r\n$6\r\nDELETE\r\n${len(key)}\r\n{key}\r\n"
         return self.connection.send(command.encode())
 
+    def is_alive(self) -> bool:
+        """
+        Checks if the client is currently connected to the server and responsive.
+
+        .. note::
+            This method sends a ping command to the connected server.
+        """
+        result: Result = self.ping()
+        return result.error is None
+
     @classmethod
     def from_connection(cls, connection: Connection) -> Self:
         """

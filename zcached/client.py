@@ -112,7 +112,7 @@ class ZCached:
         Checks if the client is currently connected to the server and responsive.
 
         .. note::
-            This method sends a ping command to the connected server to check its availability.
+            This method sends a ping command to the connected server.
         """
         result: Result = self.ping()
         return result.error is None

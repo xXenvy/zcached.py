@@ -1,8 +1,12 @@
 from __future__ import annotations
-from typing import Any
+from typing import Any, Generic, TypeVar
+
+from .deserializer import Deserializer
+
+T = TypeVar("T")
 
 
-class Result:
+class Result(Generic[T]):
     """
     Represents the result of the server response.
 
@@ -35,9 +39,13 @@ class Result:
 
     __slots__ = ("value", "error")
 
-    def __init__(self, value: bytes, error: str | None = None):
-        # TODO: Add deserializer.
-        self.value: bytes = value
+    def __init__(self, value: T, error: str | None = None):
+        if error is not None:
+            self.value = value
+        else:
+            deserializer: Deserializer[T] = Deserializer(value)
+            self.value = deserializer.deserialize()
+
         self.error: str | None = error
 
     def __bytes__(self) -> bytes:

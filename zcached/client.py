@@ -50,19 +50,19 @@ class ZCached:
     def __repr__(self) -> str:
         return f"ZCached(connection={self.connection})"
 
-    def ping(self) -> Result:
+    def ping(self) -> Result[str]:
         """Send a ping command to the database."""
         return self.connection.send(b"*1\r\n$4\r\nPING\r\n")
 
-    def flush(self) -> Result:
+    def flush(self) -> Result[None]:
         """Method to flush all database records."""
         return self.connection.send(b"*1\r\n$5\r\nFLUSH\r\n")
 
-    def dbsize(self) -> Result:
+    def dbsize(self) -> Result[int]:
         """Retrieve the size of the database."""
         return self.connection.send(b"*1\r\n$6\r\nDBSIZE\r\n")
 
-    def save(self) -> Result:
+    def save(self) -> Result[str]:
         """Method to save all database records."""
         return self.connection.send(b"*1\r\n$4\r\nSAVE\r\n")
 
@@ -78,7 +78,7 @@ class ZCached:
         command: str = f"*2\r\n$3\r\nGET\r\n${len(key)}\r\n{key}\r\n"
         return self.connection.send(command.encode())
 
-    def set(self, key: str, value: SupportedTypes) -> Result:
+    def set(self, key: str, value: SupportedTypes) -> Result[str]:
         """
         Method to create a new database record.
 
@@ -95,7 +95,7 @@ class ZCached:
         )
         return self.connection.send(command.encode())
 
-    def delete(self, key: str) -> Result:
+    def delete(self, key: str) -> Result[str]:
         """
         Method to delete a database record by key.
 

@@ -1,64 +1,70 @@
 from __future__ import annotations
 
-from typing import TypeVar, Generic, Any, List, Callable
+from typing import Any, List, Callable, TYPE_CHECKING
 
-from .serializer import SupportedTypes
-from .reader import Reader
-
-T = TypeVar("T", bound=SupportedTypes)
+if TYPE_CHECKING:
+    from .reader import Reader
 
 
-class Deserializer(Generic[T]):
-    def __init__(self, payload: bytes) -> None:
-        self.raw_payload: bytes = payload
-        self.reader: Reader = Reader(self.raw_payload)
-
-    def deserialize(self) -> T:
-        self.reader.position = 0
-
-        types: dict[str, Callable[[], T]] = {
+class Deserializer:
+    def deserialize(self, reader: Reader) -> Any:
+        types: dict[str, Callable[[Reader], Any]] = {
             "+": self.string,
             "$": self.string,
             ":": self.integer,
-            ",": self.float,
-            "#": self.bool,
-            "*": self.list,
-            "_": lambda: None,
+            ",": self.float_number,
+            "#": self.boolean,
+            "*": self.array,
+            "%": self.dictionary,
+            "_": self.none,
         }
-        return types[chr(self.raw_payload[0])]()
+        return types[chr(reader.current[0])](reader)
 
-    def string(self) -> str:
-        raw: bytes = self.reader.get()
+    @staticmethod
+    def string(reader: Reader) -> str:
+        raw: bytes = reader.read()
+
         if raw.startswith(b"+"):
-            return raw.replace(b"+", b"").decode()
+            return raw[1::].decode()
 
-        return self.reader.get().decode()
+        return reader.read().decode()
 
-    def integer(self) -> int:
-        return int(self.reader.get().replace(b":", b""))
+    @staticmethod
+    def integer(reader: Reader) -> int:
+        return int(reader.read().replace(b":", b""))
 
-    def float(self) -> float:
-        return float(self.reader.get().replace(b",", b""))
+    @staticmethod
+    def float_number(reader: Reader) -> float:
+        return float(reader.read().replace(b",", b""))
 
-    def bool(self) -> bool:
-        return self.reader.get() == b"#t"
+    @staticmethod
+    def boolean(reader: Reader) -> bool:
+        return reader.read() == b"#t"
 
-    def list(self) -> List[Any]:
+    @staticmethod
+    def none(reader: Reader) -> None:
+        reader.read()
+        return None
+
+    def array(self, reader: Reader) -> List[Any]:
         final_array: list[Any] = []
-        array_size: int = int(self.reader.get()[1::])
 
-        for element in self.reader.read(array_size):
-            if not element.startswith(b"*"):
-                if element.startswith(b"$"):
-                    element += b"\r\n" + self.reader.get()
+        array_size: int = int(reader.read()[1::])
+        # [1::] to remove the `*` character.
 
-                final_array.append(Deserializer(element).deserialize())
-                continue
-
-            payload: bytes = (
-                element + b"\r\n" + b"\r\n".join(self.reader.current_elements)
-            )
-            final_array.append(Deserializer(payload).deserialize())
-            self.reader.position += int(element[1::])
+        for _ in range(array_size):
+            final_array.append(self.deserialize(reader))
 
         return final_array
+
+    def dictionary(self, reader: Reader) -> dict[str, Any]:
+        final_dict: dict[str, Any] = {}
+
+        dict_size: int = int(reader.read()[1::])
+        # [1::] to remove the `%` character.
+
+        for _ in range(dict_size):
+            key, value = self.deserialize(reader), self.deserialize(reader)
+            final_dict[key] = value
+
+        return final_dict

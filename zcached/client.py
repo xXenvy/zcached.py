@@ -54,7 +54,7 @@ class ZCached:
         """Send a ping command to the database."""
         return self.connection.send(b"*1\r\n$4\r\nPING\r\n")
 
-    def flush(self) -> Result[None]:
+    def flush(self) -> Result[str]:
         """Method to flush all database records."""
         return self.connection.send(b"*1\r\n$5\r\nFLUSH\r\n")
 

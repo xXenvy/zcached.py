@@ -7,6 +7,8 @@ if TYPE_CHECKING:
 
 
 class Deserializer:
+    __slots__ = ()
+
     def deserialize(self, reader: Reader) -> Any:
         types: dict[str, Callable[[Reader], Any]] = {
             "+": self.string,

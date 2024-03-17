@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import Any, Generic, TypeVar
 
 from .deserializer import Deserializer
+from .reader import Reader
 
 T = TypeVar("T")
 
@@ -9,24 +10,6 @@ T = TypeVar("T")
 class Result(Generic[T]):
     """
     Represents the result of the server response.
-
-    .. container:: operations
-
-        .. describe:: x == y
-
-            Checks if two results are equal.
-
-        .. describe:: x != y
-
-            Checks if two results are not equal.
-
-        .. describe:: hash(x)
-
-            Returns the result's hash.
-
-        .. describe:: bytes(x)
-
-            Returns the result's bytes.
 
     Attributes
     ----------
@@ -41,15 +24,12 @@ class Result(Generic[T]):
 
     def __init__(self, value: T, error: str | None = None):
         if error is not None:
-            self.value = value
+            self.value: T = value
         else:
-            deserializer: Deserializer[T] = Deserializer(value)
-            self.value = deserializer.deserialize()
+            deserializer = Deserializer()
+            self.value: T = deserializer.deserialize(Reader(value))
 
         self.error: str | None = error
-
-    def __bytes__(self) -> bytes:
-        return self.value
 
     def __hash__(self) -> int:
         return hash((self.value, self.error))

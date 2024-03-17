@@ -7,9 +7,24 @@ if TYPE_CHECKING:
 
 
 class Deserializer:
+    """A class responsible for deserializing data from a Reader object."""
+
     __slots__ = ()
 
     def deserialize(self, reader: Reader) -> Any:
+        """
+        Method to deserialize data from the provided Reader object.
+
+        Parameters
+        ----------
+        reader:
+            The Reader object containing the payload data.
+
+        Raises
+        ------
+        KeyError
+            If the deserialization type is not supported.
+        """
         types: dict[str, Callable[[Reader], Any]] = {
             "+": self.string,
             "$": self.string,
@@ -24,6 +39,7 @@ class Deserializer:
 
     @staticmethod
     def string(reader: Reader) -> str:
+        """Method to deserialize a payload data to string."""
         raw: bytes = reader.read()
 
         if raw.startswith(b"+"):
@@ -33,22 +49,27 @@ class Deserializer:
 
     @staticmethod
     def integer(reader: Reader) -> int:
+        """Method to deserialize a payload data to integer."""
         return int(reader.read().replace(b":", b""))
 
     @staticmethod
     def float_number(reader: Reader) -> float:
+        """Method to deserialize a payload data to float."""
         return float(reader.read().replace(b",", b""))
 
     @staticmethod
     def boolean(reader: Reader) -> bool:
+        """Method to deserialize a payload data to boolean."""
         return reader.read() == b"#t"
 
     @staticmethod
     def none(reader: Reader) -> None:
+        """Method to deserialize a payload data to None."""
         reader.read()
         return None
 
     def array(self, reader: Reader) -> List[Any]:
+        """Method to deserialize a payload data to array."""
         final_array: list[Any] = []
 
         array_size: int = int(reader.read()[1::])
@@ -60,6 +81,7 @@ class Deserializer:
         return final_array
 
     def dictionary(self, reader: Reader) -> dict[str, Any]:
+        """Method to deserialize a payload data to dictionary."""
         final_dict: dict[str, Any] = {}
 
         dict_size: int = int(reader.read()[1::])

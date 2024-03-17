@@ -24,6 +24,7 @@ class Result(Generic[T]):
 
     def __init__(self, value: bytes, error: str | None = None):
         if error is not None:
+            # If we have an error, the value will be empty, so there is no point in deserializing it.
             self.value: T = value  # type: ignore
         else:
             deserializer = Deserializer()

@@ -1,4 +1,4 @@
-from typing import Iterator
+from typing import Iterator, List
 
 
 class Reader:
@@ -24,8 +24,11 @@ class Reader:
         self.payload: bytes = payload
         self.position: int = 0
 
+    def __repr__(self) -> str:
+        return f"<Reader(position={self.position}, items={len(self.current_elements)})>"
+
     @property
-    def current_elements(self) -> list[bytes]:
+    def current_elements(self) -> List[bytes]:
         """Returns a list of remaining elements in the payload, starting from the current position."""
         return self.payload.split(b"\r\n")[self.position : :]
 

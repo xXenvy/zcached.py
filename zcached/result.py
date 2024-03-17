@@ -22,9 +22,9 @@ class Result(Generic[T]):
 
     __slots__ = ("value", "error")
 
-    def __init__(self, value: T, error: str | None = None):
+    def __init__(self, value: bytes, error: str | None = None):
         if error is not None:
-            self.value: T = value
+            self.value: T = value  # type: ignore
         else:
             deserializer = Deserializer()
             self.value: T = deserializer.deserialize(Reader(value))

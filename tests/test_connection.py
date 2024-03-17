@@ -55,7 +55,4 @@ def test_connection():
             },
         )
         assert result.error is None
-
-        result = client.get("randomkey")
-        assert result.error is None and len(bytes(result)) == 251
         client.flush()

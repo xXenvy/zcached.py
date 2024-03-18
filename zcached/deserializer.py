@@ -7,7 +7,12 @@ if TYPE_CHECKING:
 
 
 class Deserializer:
-    """A class responsible for deserializing data using a Reader object."""
+    """
+    Deserializer class responsible for deserializing data from a Reader object.
+
+    This class provides methods to deserialize various data types from a Reader object,
+    including strings, integers, floats, booleans, None, arrays, and dictionaries.
+    """
 
     __slots__ = ()
 
@@ -35,7 +40,7 @@ class Deserializer:
     @staticmethod
     def deserialize_str(reader: Reader) -> str:
         """Method to deserialize a payload data to string."""
-        reader.read_until(b"\n")
+        reader.read_until(b"\n")  # Skip $lenght element.
         return reader.read_until(b"\n").decode()
 
     @staticmethod
@@ -61,7 +66,7 @@ class Deserializer:
     @staticmethod
     def deserialize_none(reader: Reader) -> None:
         """Method to deserialize a payload data to None."""
-        reader.read_until(b"\n")
+        reader.read_until(b"\n")  # We don't care about this.
         return None
 
     def deserialize_array(self, reader: Reader) -> List[Any]:

@@ -15,7 +15,7 @@ class Reader:
     payload:
         Provided payload.
     position:
-        The position of the reader.
+        Current reader position.
     """
 
     __slots__ = ("payload", "position")

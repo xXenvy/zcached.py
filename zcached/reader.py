@@ -36,11 +36,21 @@ class Reader:
         element:
             The byte sequence indicating the end of reading.
 
+        Raises
+        ------
+        RuntimeError
+            There is no specific item in the buffer starting from the current position.
+
         Notes
         -----
         This method reads bytes from the buffer until the specified `element` is encountered.
         It starts reading from the current position in the buffer.
         """
+        if element not in self.buffer[self.position : :]:
+            raise RuntimeError(
+                "There is no specific element in the buffer starting from the current position."
+            )
+
         total: bytes = self.read(1)
 
         while not total.endswith(element):

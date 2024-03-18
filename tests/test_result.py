@@ -6,11 +6,16 @@ from zcached import Result
 
 @pytest.mark.parametrize(
     "value,error",
-    [(b"+foo", None), (b"", "Error!"), (b"$3\r\nfoo", None), (b":50", None)],
+    [
+        (b"+foo\r\n", None),
+        (b"", "Error!"),
+        (b"$3\r\nfoo\r\n", None),
+        (b":50\r\n", None),
+    ],
 )
 def test_result(value: bytes, error: str | None):
     result: Result[bytes] = Result(value, error)
-    result2: Result[bytes] = Result(b":50", None)
+    result2: Result[bytes] = Result(b":50\r\n", None)
 
     if result.error:
         assert result.failure is True

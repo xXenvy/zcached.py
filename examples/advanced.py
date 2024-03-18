@@ -11,7 +11,7 @@ class Item(TypedDict):
 
 class ShopManager(ZCached):
 
-    def set_items(self, items: list[Item]) -> str:
+    def set_items(self, items: List[Item]) -> str:
         if not self.is_alive():
             raise RuntimeError("Connection closed.")
 

@@ -7,11 +7,11 @@ if TYPE_CHECKING:
 
 
 class Deserializer:
-    """A class responsible for deserializing data from a Reader object."""
+    """A class responsible for deserializing data using a Reader object."""
 
     __slots__ = ()
 
-    def deserialize(self, reader: Reader) -> Any:
+    def process(self, reader: Reader) -> Any:
         """
         Method to deserialize data from the provided Reader object.
 
@@ -19,77 +19,58 @@ class Deserializer:
         ----------
         reader:
             The Reader object containing the payload data.
-
-        Raises
-        ------
-        KeyError
-            If the deserialization type is not supported.
         """
         handlers: dict[str, Callable[[Reader], Any]] = {
-            "+": self.string,
-            "$": self.string,
-            ":": self.integer,
-            ",": self.float_number,
-            "#": self.boolean,
-            "*": self.array,
-            "%": self.dictionary,
-            "_": self.none,
+            "+": self.deserialize_sstr,
+            "$": self.deserialize_str,
+            ":": self.deserialize_int,
+            ",": self.deserialize_float,
+            "#": self.deserialize_bool,
+            "_": self.deserialize_none,
+            "*": self.deserialize_array,
+            "%": self.deserialize_map,
         }
         current_first_char: str = chr(reader.current[0])
         return handlers[current_first_char](reader)
 
     @staticmethod
-    def string(reader: Reader) -> str:
+    def deserialize_str(reader: Reader) -> str:
         """Method to deserialize a payload data to string."""
-        raw: bytes = reader.read()
-
-        if raw.startswith(b"+"):
-            return raw[1::].decode()
-
+        reader.read()
         return reader.read().decode()
 
     @staticmethod
-    def integer(reader: Reader) -> int:
+    def deserialize_sstr(reader: Reader) -> str:
+        """Method to deserialize a payload data to string."""
+        return reader.read().decode()
+
+    @staticmethod
+    def deserialize_int(reader: Reader) -> int:
         """Method to deserialize a payload data to integer."""
-        return int(reader.read().replace(b":", b""))
+        return int(reader.read()[1::])
 
     @staticmethod
-    def float_number(reader: Reader) -> float:
+    def deserialize_float(reader: Reader) -> float:
         """Method to deserialize a payload data to float."""
-        return float(reader.read().replace(b",", b""))
+        return float(reader.read()[1::])
 
     @staticmethod
-    def boolean(reader: Reader) -> bool:
+    def deserialize_bool(reader: Reader) -> bool:
         """Method to deserialize a payload data to boolean."""
         return reader.read() == b"#t"
 
     @staticmethod
-    def none(reader: Reader) -> None:
+    def deserialize_none(reader: Reader) -> None:
         """Method to deserialize a payload data to None."""
         reader.read()
         return None
 
-    def array(self, reader: Reader) -> List[Any]:
+    def deserialize_array(self, reader: Reader) -> List[Any]:
         """Method to deserialize a payload data to array."""
-        final_array: list[Any] = []
-
         array_size: int = int(reader.read()[1::])
-        # [1::] to remove the `*` character.
+        return [self.process(reader) for _ in range(array_size)]
 
-        for _ in range(array_size):
-            final_array.append(self.deserialize(reader))
-
-        return final_array
-
-    def dictionary(self, reader: Reader) -> dict[str, Any]:
+    def deserialize_map(self, reader: Reader) -> dict[str, Any]:
         """Method to deserialize a payload data to dictionary."""
-        final_dict: dict[str, Any] = {}
-
-        dict_size: int = int(reader.read()[1::])
-        # [1::] to remove the `%` character.
-
-        for _ in range(dict_size):
-            key, value = self.deserialize(reader), self.deserialize(reader)
-            final_dict[key] = value
-
-        return final_dict
+        map_size: int = int(reader.read()[1::])
+        return {self.process(reader): self.process(reader) for _ in range(map_size)}

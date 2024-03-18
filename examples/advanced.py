@@ -1,5 +1,5 @@
 from zcached import ZCached, Result
-from typing import TypedDict
+from typing import TypedDict, List
 
 
 class Item(TypedDict):
@@ -11,7 +11,7 @@ class Item(TypedDict):
 
 class ShopManager(ZCached):
 
-    def set_items(self, items: list[Item]) -> None:
+    def set_items(self, items: list[Item]) -> str:
         if not self.is_alive():
             raise RuntimeError("Connection closed.")
 
@@ -20,11 +20,13 @@ class ShopManager(ZCached):
         if error := result.error:
             raise RuntimeError(error)
 
-    def get_items(self) -> list[Item]:
+        return result.value
+
+    def get_items(self) -> List[Item]:
         if not self.is_alive():
             raise RuntimeError("Connection closed.")
 
-        result: Result[list[Item]] = self.get(key="items")
+        result: Result[List[Item]] = self.get(key="items")
 
         if error := result.error:
             raise RuntimeError(error)
@@ -32,7 +34,7 @@ class ShopManager(ZCached):
         return result.value
 
     def get_total_quantity(self) -> int:
-        items: list[Item] = self.get_items()
+        items: List[Item] = self.get_items()
         return sum([item["quantity"] for item in items])
 
 

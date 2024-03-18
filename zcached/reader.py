@@ -1,9 +1,9 @@
-from typing import Iterator, List
+from __future__ import annotations
 
 
 class Reader:
     """
-    Implementation of the reader interface which helps read data from raw bytes.
+    Implementation of the reader interface which helps reading data from raw bytes.
 
     Parameters
     ----------
@@ -12,48 +12,54 @@ class Reader:
 
     Attributes
     ----------
-    payload:
+    buffer:
         Provided payload.
     position:
         Current reader position.
     """
 
-    __slots__ = ("payload", "position")
+    __slots__ = ("buffer", "position")
 
     def __init__(self, payload: bytes) -> None:
-        self.payload: bytes = payload
+        self.buffer: bytes = payload.replace(b"\r", b"")
         self.position: int = 0
 
     def __repr__(self) -> str:
-        return f"<Reader(position={self.position}, items={len(self.current_elements)})>"
+        return f"<Reader(position={self.position})>"
 
-    @property
-    def current_elements(self) -> List[bytes]:
-        """Returns a list of remaining elements in the payload, starting from the current position."""
-        return self.payload.split(b"\r\n")[self.position : :]
-
-    @property
-    def current(self) -> bytes:
-        """Returns the current element pointed by the position."""
-        return self.current_elements[0]
-
-    def read_until(self, amount: int) -> Iterator[bytes]:
+    def read_until(self, element: bytes) -> bytes:
         """
-        Reads and yields bytes elements from the payload.
+        Method to read bytes from the buffer until the specified element is encountered.
 
         Parameters
         ----------
-        amount:
-            Number of elements to return.
-        """
-        for _ in range(amount):
-            yield self.read()
+        element:
+            The byte sequence indicating the end of reading.
 
-    def read(self) -> bytes:
+        Notes
+        -----
+        This method reads bytes from the buffer until the specified `element` is encountered.
+        It starts reading from the current position in the buffer.
         """
-        Reads the current element and moves the position to the next one.
+        total: bytes = self.read(1)
+
+        while not total.endswith(element):
+            total += self.read(1)
+
+        return total[: -len(element)]
+
+    def read(self, size: int | None = None) -> bytes:
         """
-        # TODO: read single characters.
-        element: bytes = self.current
-        self.position += 1
-        return element
+        Method to read bytes starting at current position.
+
+        Parameters
+        ----------
+        size:
+            Number of bytes to read.
+        """
+        if size is None:
+            size = len(self.buffer) - self.position
+
+        data: bytes = self.buffer[self.position : self.position + size]
+        self.position += len(data)
+        return data

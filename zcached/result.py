@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Any, Generic, TypeVar
+from typing import Any, Generic, TypeVar, ClassVar
 
 from .deserializer import Deserializer
 from .reader import Reader
@@ -21,14 +21,14 @@ class Result(Generic[T]):
     """
 
     __slots__ = ("value", "error")
+    _deserializer: ClassVar[Deserializer] = Deserializer()
 
     def __init__(self, value: bytes, error: str | None = None):
         if error is not None:
             # If we have an error, the value will be empty, so there is no point in deserializing it.
             self.value: T = value  # type: ignore
         else:
-            deserializer = Deserializer()
-            self.value: T = deserializer.deserialize(Reader(value))
+            self.value: T = self._deserializer.process(Reader(value))
 
         self.error: str | None = error
 
@@ -66,4 +66,4 @@ class Result(Generic[T]):
 
     def is_empty(self) -> bool:
         """Checks if the value is empty."""
-        return not bool(self.value)
+        return isinstance(self.value, bytes) and not bool(self.value)

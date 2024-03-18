@@ -25,7 +25,7 @@ class Deserializer:
         KeyError
             If the deserialization type is not supported.
         """
-        types: dict[str, Callable[[Reader], Any]] = {
+        handlers: dict[str, Callable[[Reader], Any]] = {
             "+": self.string,
             "$": self.string,
             ":": self.integer,
@@ -35,7 +35,8 @@ class Deserializer:
             "%": self.dictionary,
             "_": self.none,
         }
-        return types[chr(reader.current[0])](reader)
+        current_first_char: str = chr(reader.current[0])
+        return handlers[current_first_char](reader)
 
     @staticmethod
     def string(reader: Reader) -> str:

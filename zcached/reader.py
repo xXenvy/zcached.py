@@ -37,20 +37,23 @@ class Reader:
         """Returns the current element pointed by the position."""
         return self.current_elements[0]
 
-    def read_until(self, lenght: int) -> Iterator[bytes]:
+    def read_until(self, amount: int) -> Iterator[bytes]:
         """
-        Reads and yields bytes elements from the payload until the specified length.
+        Reads and yields bytes elements from the payload.
 
         Parameters
         ----------
-        lenght:
-            The length of the payload to read.
+        amount:
+            Number of elements to return.
         """
-        for _ in range(lenght):
+        for _ in range(amount):
             yield self.read()
 
     def read(self) -> bytes:
-        """Reads the current element and moves the position to the next one."""
-        item: bytes = self.current
+        """
+        Reads the current element and moves the position to the next one.
+        """
+        # TODO: read single characters.
+        element: bytes = self.current
         self.position += 1
-        return item
+        return element

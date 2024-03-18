@@ -34,18 +34,21 @@ class ShopManager(ZCached):
         return result.value
 
     def get_total_quantity(self) -> int:
-        items: List[Item] = self.get_items()
-        return sum([item["quantity"] for item in items])
+        return sum([item["quantity"] for item in self.get_items()])
+
+    def get_total_cost(self) -> float:
+        return sum([item["price"] for item in self.get_items()])
 
 
 if __name__ == "__main__":
     manager = ShopManager(host="localhost", port=5555)
     manager.set_items(
         [
-            Item(name="foo", description="test", price=50, quantity=1),
-            Item(name="bar", description="test123", price=90, quantity=5),
+            Item(name="foo", description="test", price=50.99, quantity=1),
+            Item(name="bar", description="test123", price=89.99, quantity=5),
         ]
     )
     print(manager.get_items())
     print(manager.get_total_quantity())
+    print(manager.get_total_cost())
     manager.flush()

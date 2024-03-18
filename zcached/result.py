@@ -1,28 +1,15 @@
 from __future__ import annotations
-from typing import Any
+from typing import Any, Generic, TypeVar, ClassVar
+
+from .deserializer import Deserializer
+from .reader import Reader
+
+T = TypeVar("T")
 
 
-class Result:
+class Result(Generic[T]):
     """
     Represents the result of the server response.
-
-    .. container:: operations
-
-        .. describe:: x == y
-
-            Checks if two results are equal.
-
-        .. describe:: x != y
-
-            Checks if two results are not equal.
-
-        .. describe:: hash(x)
-
-            Returns the result's hash.
-
-        .. describe:: bytes(x)
-
-            Returns the result's bytes.
 
     Attributes
     ----------
@@ -34,14 +21,16 @@ class Result:
     """
 
     __slots__ = ("value", "error")
+    _deserializer: ClassVar[Deserializer] = Deserializer()
 
     def __init__(self, value: bytes, error: str | None = None):
-        # TODO: Add deserializer.
-        self.value: bytes = value
-        self.error: str | None = error
+        if error is not None:
+            # If we have an error, the value will be empty, so there is no point in deserializing it.
+            self.value: T = value  # type: ignore
+        else:
+            self.value: T = self._deserializer.process(Reader(value))
 
-    def __bytes__(self) -> bytes:
-        return self.value
+        self.error: str | None = error
 
     def __hash__(self) -> int:
         return hash((self.value, self.error))
@@ -77,4 +66,4 @@ class Result:
 
     def is_empty(self) -> bool:
         """Checks if the value is empty."""
-        return not bool(self.value)
+        return isinstance(self.value, bytes) and not bool(self.value)

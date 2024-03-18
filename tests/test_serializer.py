@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, List
 
 import pytest
 from zcached import Serializer
@@ -21,7 +21,7 @@ def test_basic_serializer():
     with pytest.raises(TypeError):
         Serializer(object())  # type: ignore
 
-    serializer: Serializer[str] = Serializer("string_test")
+    serializer = Serializer("string_test")
 
     assert isinstance(serializer.raw_value, str)
     assert serializer.serialize() == "$11\r\nstring_test\r\n"
@@ -31,7 +31,7 @@ def test_basic_serializer():
 
 
 def test_dict_serializer():
-    dict_serializer: Serializer[dict] = Serializer(
+    dict_serializer = Serializer(
         {"a": 10, "b": 1.0, "c": "text", "d": True, "e": False, "f": None}
     )
     assert isinstance(dict_serializer.raw_value, dict)
@@ -53,7 +53,7 @@ def test_serializer(value: Any):
 
 
 def test_list_serializer():
-    arrays: list[list[Any]] = []
+    arrays: List[List[Any]] = []
 
     for index, value in enumerate(test_values.keys()):
         arrays.append(list(test_values.keys())[: index + 1])
@@ -64,7 +64,7 @@ def test_list_serializer():
         for element in array:
             expected_expression += test_values[element]
 
-        serializer: Serializer[list[Any]] = Serializer(array)
+        serializer = Serializer(array)
 
         assert isinstance(serializer.raw_value, list)
 
@@ -78,7 +78,7 @@ def test_list_serializer():
 def test_bulk_serializer(value: str):
     expected_expression: str = f"${len(value)}\r\n{value}\r\n"
 
-    serializer: Serializer[str] = Serializer(value)
+    serializer = Serializer(value)
     assert isinstance(serializer.raw_value, str)
 
     with pytest.raises(AssertionError):

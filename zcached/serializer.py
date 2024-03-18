@@ -1,11 +1,9 @@
-from typing import Union, TypeVar, Generic, Callable, Type
+from typing import Union, Callable, Type, Any
 
 SupportedTypes = Union[str, int, float, bool, list, tuple, dict, set, None]
 
-T = TypeVar("T", bound=SupportedTypes)
 
-
-class Serializer(Generic[T]):
+class Serializer:
     """
     A class for serializing values of different data types.
 
@@ -27,20 +25,20 @@ class Serializer(Generic[T]):
 
     __slots__ = ("raw_value",)
 
-    def __init__(self, value: T) -> None:
+    def __init__(self, value: Any) -> None:
         if not isinstance(value, SupportedTypes):
             raise TypeError(
                 "Specified value for serialization has an unsupported type. "
                 f"Currently the serializer supports: {SupportedTypes}"
             )
 
-        self.raw_value: T = value
+        self.raw_value: Any = value
 
     def __repr__(self) -> str:
         return f"<Serializer(type={self.raw_type.__name__}, raw={self.raw_value})>"
 
     @property
-    def raw_type(self) -> Type[T]:
+    def raw_type(self) -> Type:
         """The type of the raw value"""
         return type(self.raw_value)
 

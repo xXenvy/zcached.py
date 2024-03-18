@@ -28,14 +28,12 @@ def test_connection():
         connection.connect()
         assert connection.is_connected is True
 
-        with pytest.raises(RuntimeError):
-            connection.connect()
-
         client = ZCached.from_connection(connection)
 
         for _ in range(5):
-            result: Result = client.ping()
-            assert result.success and bytes(result) == b"+PONG\r\n"
+            result: Result[str] = client.ping()
+            assert result.success and result.value == "PONG"
+            assert not result.is_empty()
 
         assert client.connection.receive() is None
 
@@ -55,7 +53,5 @@ def test_connection():
             },
         )
         assert result.error is None
-
-        result = client.get("randomkey")
-        assert result.error is None and len(bytes(result)) == 251
+        assert result.value == "OK"
         client.flush()

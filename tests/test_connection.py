@@ -33,6 +33,7 @@ def test_connection():
         for _ in range(5):
             result: Result[str] = client.ping()
             assert result.success and result.value == "PONG"
+            assert not result.is_empty()
 
         assert client.connection.receive() is None
 
@@ -52,6 +53,5 @@ def test_connection():
             },
         )
         assert result.error is None
-        client.flush()
-
         assert result.value == "OK"
+        client.flush()

@@ -37,12 +37,12 @@ class Deserializer:
     def deserialize_str(reader: Reader) -> str:
         """Method to deserialize a payload data to string."""
         reader.read()
-        return reader.read().decode()
+        return reader.read().decode()[1::]
 
     @staticmethod
     def deserialize_sstr(reader: Reader) -> str:
         """Method to deserialize a payload data to string."""
-        return reader.read().decode()
+        return reader.read().decode()[1::]
 
     @staticmethod
     def deserialize_int(reader: Reader) -> int:

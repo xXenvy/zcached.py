@@ -15,6 +15,9 @@ For more information, please see [zcached repository](https://github.com/sectasy
 - **Properly Typehinted:** The codebase of zcached.py is properly typehinted, enhancing code readability.
 
 ## `🔧` Installation
+> [!IMPORTANT]  
+> **Library requires python version 3.8 or newer.** (Older should also work, but untested).
+
 Before installing zcached.py, ensure that you have the zcached server. Instructions for installing the server can be found [here](https://github.com/sectasy0/zcached).
 
 Once the zcached server is installed, you can proceed to install zcached.py using pip:

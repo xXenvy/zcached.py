@@ -18,24 +18,22 @@ test_values = {
 
 
 def test_basic_serializer():
+    serializer = Serializer()
+
     with pytest.raises(TypeError):
-        Serializer(object())  # type: ignore
+        serializer.process(object())  # type: ignore
 
-    serializer = Serializer("string_test")
-
-    assert isinstance(serializer.raw_value, str)
-    assert serializer.serialize() == "$11\r\nstring_test\r\n"
+    assert serializer.process("string_test") == "$11\r\nstring_test\r\n"
 
     with pytest.raises(AssertionError):
-        _ = serializer.bool
+        serializer.serialize_bool("string_test")
 
 
 def test_dict_serializer():
-    dict_serializer = Serializer(
-        {"a": 10, "b": 1.0, "c": "text", "d": True, "e": False, "f": None}
-    )
-    assert isinstance(dict_serializer.raw_value, dict)
-    assert dict_serializer.serialize() == (
+    value = {"a": 10, "b": 1.0, "c": "text", "d": True, "e": False, "f": None}
+    serializer = Serializer()
+
+    assert serializer.process(value) == (
         "%6\r\n$1\r\na\r\n:10\r\n$1\r\nb\r\n,1.0\r\n$1\r\nc\r\n"
         "$4\r\ntext\r\n$1\r\nd\r\n#t\r\n$1\r\ne\r\n#f\r\n$1\r\nf\r\n_\r\n"
     )
@@ -43,13 +41,12 @@ def test_dict_serializer():
 
 @pytest.mark.parametrize("value", tuple(test_values.keys()))
 def test_serializer(value: Any):
-    serializer: Serializer = Serializer(value)
+    serializer = Serializer()
 
-    assert isinstance(serializer.raw_value, type(value))
-    assert serializer.serialize() == test_values[value]
+    assert serializer.process(value) == test_values[value]
 
     with pytest.raises(AssertionError):
-        _ = serializer.list
+        _ = serializer.serialize_list(value)
 
 
 def test_list_serializer():
@@ -64,24 +61,21 @@ def test_list_serializer():
         for element in array:
             expected_expression += test_values[element]
 
-        serializer = Serializer(array)
-
-        assert isinstance(serializer.raw_value, list)
+        serializer = Serializer()
 
         with pytest.raises(AssertionError):
-            _ = serializer.integer
+            _ = serializer.serialize_int(array)
 
-        assert serializer.serialize() == expected_expression
+        assert serializer.process(array) == expected_expression
 
 
 @pytest.mark.parametrize("value", ("bul^)^+kstr#!ing$!%@#" * 25 * x for x in range(5)))
 def test_bulk_serializer(value: str):
     expected_expression: str = f"${len(value)}\r\n{value}\r\n"
 
-    serializer = Serializer(value)
-    assert isinstance(serializer.raw_value, str)
+    serializer = Serializer()
 
     with pytest.raises(AssertionError):
-        _ = serializer.float
+        _ = serializer.serialize_float(value)
 
-    assert serializer.serialize() == expected_expression
+    assert serializer.process(value) == expected_expression

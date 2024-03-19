@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, ClassVar
 
 from .serializer import Serializer, SupportedTypes
 from .connection import Connection
@@ -34,6 +34,7 @@ class ZCached:
     """
 
     __slots__ = ("connection",)
+    _serializer: ClassVar[Serializer] = Serializer()
 
     def __init__(
         self,
@@ -111,9 +112,8 @@ class ZCached:
         value:
             The value of the record.
         """
-        serializer: Serializer = Serializer(value)
         command: str = (
-            f"*3\r\n$3\r\nSET\r\n${len(key)}\r\n{key}\r\n{serializer.serialize()}"
+            f"*3\r\n$3\r\nSET\r\n${len(key)}\r\n{key}\r\n{self._serializer.process(value)}"
         )
         return self.connection.send(command.encode())
 
@@ -130,8 +130,7 @@ class ZCached:
         """
         command: str = f"*{1 + len(params) * 2}\r\n$4\r\nMSET\r\n"
         for key, value in params.items():
-            serializer: Serializer = Serializer(value)
-            command += f"${len(key)}\r\n{key}\r\n{serializer.serialize()}"
+            command += f"${len(key)}\r\n{key}\r\n{self._serializer.process(value)}"
 
         return self.connection.send(command.encode())
 

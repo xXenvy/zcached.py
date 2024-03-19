@@ -1,117 +1,93 @@
-from typing import Union, Callable, Type, Any
+from typing import Union, Callable
 
 SupportedTypes = Union[str, int, float, bool, list, tuple, dict, set, None]
 
 
 class Serializer:
     """
-    A class for serializing values of different data types.
-
-    Parameters
-    ----------
-    value:
-        A value to serialize.
-
-    Attributes
-    ----------
-    raw_value:
-        Provided value for serialization.
-
-    Raises
-    ------
-    TypeError
-        If the specified type is not supported by the serializer.
+    A class for serializing Python objects into string payload.
     """
 
-    __slots__ = ("raw_value",)
+    def process(self, value: SupportedTypes) -> str:
+        """
+        Serialize the given value into its string representation.
 
-    def __init__(self, value: Any) -> None:
+        Parameters
+        ----------
+        value:
+            Object to serialize.
+
+        Raises
+        ------
+        TypeError
+            If the type of value is not supported for serialization.
+        """
         if not isinstance(value, SupportedTypes):
             raise TypeError(
-                "Specified value for serialization has an unsupported type. "
+                "Specified value for serialization has an unsupported type."
                 f"Currently the serializer supports: {SupportedTypes}"
             )
 
-        self.raw_value: Any = value
-
-    def __repr__(self) -> str:
-        return f"<Serializer(type={self.raw_type.__name__}, raw={self.raw_value})>"
-
-    @property
-    def raw_type(self) -> Type:
-        """The type of the raw value"""
-        return type(self.raw_value)
-
-    def serialize(self) -> str:
-        """Automatically serializes the raw value."""
-        if self.raw_value is None:
+        if value is None:
             return self.none()
 
         # Python versions 3.9, 3.8 do not support match statements ahh moment.
-        types: dict[type, Callable[[], str]] = {
-            str: lambda: self.string,
-            int: lambda: self.integer,
-            float: lambda: self.float,
-            bool: lambda: self.bool,
-            list: lambda: self.list,
-            tuple: lambda: self.tuple,
-            set: lambda: self.set,
-            dict: lambda: self.dict,
+        handlers: dict[type, Callable[[SupportedTypes], str]] = {
+            str: self.serialize_str,
+            int: self.serialize_int,
+            float: self.serialize_float,
+            bool: self.serialize_bool,
+            list: self.serialize_list,
+            tuple: self.serialize_tuple,
+            set: self.serialize_set,
+            dict: self.serialize_dict,
         }
+        return handlers[type(value)](value)
 
-        return types[self.raw_type]()
-
-    @property
-    def string(self) -> str:
+    @staticmethod
+    def serialize_str(value: SupportedTypes) -> str:
         """Returns the serialized value of type str."""
-        assert isinstance(self.raw_value, str)
-        return f"${len(self.raw_value)}\r\n{self.raw_value}\r\n"
+        assert isinstance(value, str)
+        return f"${len(value)}\r\n{value}\r\n"
 
-    @property
-    def integer(self) -> str:
+    @staticmethod
+    def serialize_int(value: SupportedTypes) -> str:
         """Returns the serialized value of type int."""
-        assert isinstance(self.raw_value, int)
-        return f":{self.raw_value}\r\n"
+        assert isinstance(value, int)
+        return f":{value}\r\n"
 
-    @property
-    def float(self) -> str:
+    @staticmethod
+    def serialize_float(value: SupportedTypes) -> str:
         """Returns the serialized value of type float."""
-        assert isinstance(self.raw_value, float)
-        return f",{self.raw_value}\r\n"
+        assert isinstance(value, float)
+        return f",{value}\r\n"
 
-    @property
-    def bool(self) -> str:
+    @staticmethod
+    def serialize_bool(value: SupportedTypes) -> str:
         """Returns the serialized value of type bool."""
-        assert isinstance(self.raw_value, bool)
-        return "#{}\r\n".format("t" if self.raw_value else "f")
+        assert isinstance(value, bool)
+        return "#{}\r\n".format("t" if value else "f")
 
-    @property
-    def list(self) -> str:
+    def serialize_list(self, value: SupportedTypes) -> str:
         """Returns the serialized value of type list."""
-        assert isinstance(self.raw_value, (list, tuple, set))
-        return f"*{len(self.raw_value)}\r\n" + "".join(
-            (Serializer(item).serialize() for item in self.raw_value)
-        )
+        assert isinstance(value, (list, tuple, set))
+        return f"*{len(value)}\r\n" + "".join((self.process(item) for item in value))
 
-    @property
-    def tuple(self) -> str:
+    def serialize_tuple(self, value: SupportedTypes) -> str:
         """Returns the serialized value of type tuple."""
-        return self.list
+        return self.serialize_list(value)
 
-    @property
-    def set(self) -> str:
+    def serialize_set(self, value: SupportedTypes) -> str:
         """Returns the serialized value of type set."""
-        return self.list
+        return self.serialize_list(value)
 
-    @property
-    def dict(self) -> str:
+    def serialize_dict(self, value: SupportedTypes) -> str:
         """Returns the serialized value of type dict."""
-        assert isinstance(self.raw_value, dict)
+        assert isinstance(value, dict)
+        text: str = f"%{len(value)}\r\n"
 
-        text: str = f"%{len(self.raw_value)}\r\n"
-
-        for key, value in self.raw_value.items():
-            text += f"${len(str(key))}\r\n{key}\r\n{Serializer(value).serialize()}"
+        for k, v in value.items():
+            text += f"${len(str(k))}\r\n{k}\r\n{self.process(v)}"
 
         return text
 

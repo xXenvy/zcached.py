@@ -5,7 +5,7 @@
 
 ## `📜` Introduction
 Zcached.py is a Python client-side library designed to interact with zcached, a high-performance caching system.
-This library provides developers with an easy-to-use interface for integrating zcached into their Python applications, enabling efficient data caching.
+This library provides developers easy-to-use interface for integrating zcached into their Python applications, enabling efficient data caching.
 
 For more information, please see [zcached repository](https://github.com/sectasy0/zcached).
 

@@ -33,7 +33,6 @@ def test_dict_serializer():
     value = {"a": 10, "b": 1.0, "c": "text", "d": True, "e": False, "f": None}
     serializer = Serializer()
 
-    print(serializer.process(value).encode())
     assert serializer.process(value) == (
         "%6\r\n$1\r\na\r\n:10\r\n$1\r\nb\r\n,1.0\r\n$1\r\nc\r\n"
         "$4\r\ntext\r\n$1\r\nd\r\n#t\r\n$1\r\ne\r\n#f\r\n$1\r\nf\r\n_\r\n"

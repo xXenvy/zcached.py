@@ -6,7 +6,7 @@ IS_SERVER_RUNNING = False
 
 def test_connection():
     connection = Connection(
-        host="localhost", port=5555, connection_attempts=2, buff_size=2
+        host="localhost", port=5555, connection_attempts=2, buff_size=2, reconnect=False
     )
 
     assert connection.host == "localhost"

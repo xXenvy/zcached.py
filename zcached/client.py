@@ -25,7 +25,13 @@ class ZCached:
         while smaller values can be more memory-efficient but slower.
     connection_attempts:
         The maximum number of attempts to establish a connection with the server.
-        If the maximum number of attempts is exceeded, an error will be raised.
+        This value is also considered while reconnecting.
+    reconnect:
+        Flag indicating whether automatic reconnection attempt should be made
+        in case of a broken connection.
+
+        .. note::
+            There is an option to do a reconnect manually, using the ``ZCached.connection.try_reconnect()`` method.
 
     Attributes
     ----------
@@ -42,9 +48,10 @@ class ZCached:
         port: int = 7556,
         buff_size: int = 1024,
         connection_attempts: int = 3,
+        reconnect: bool = True,
     ) -> None:
         self.connection: Connection = Connection(
-            host, port, buff_size, connection_attempts
+            host, port, connection_attempts, reconnect, buff_size
         )
         self.connection.connect()
 
@@ -171,4 +178,5 @@ class ZCached:
             port=connection.port,
             buff_size=connection.buff_size,
             connection_attempts=connection.connection_attempts,
+            reconnect=connection.reconnect,
         )

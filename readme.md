@@ -32,7 +32,7 @@ client = ZCached(host="localhost", port=1234)
 result: Result[str] = client.ping()
 print(result.value)
 ```
-**See more examples: [here](https://github.com/xXenvy/zcached.py/tree/master/examples)** 
+**See more examples [here](https://github.com/xXenvy/zcached.py/tree/master/examples)** 
 
 ## Contributing
 Contributions to zcached.py are welcome! 

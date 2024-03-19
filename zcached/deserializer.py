@@ -8,7 +8,7 @@ if TYPE_CHECKING:
 
 class Deserializer:
     """
-    Deserializer class responsible for deserializing data from a Reader object.
+    Deserializer class is responsible for deserializing payload data to python objects.
 
     This class provides methods to deserialize various data types from a Reader object,
     including strings, integers, floats, booleans, None, arrays, and dictionaries.

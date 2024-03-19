@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from .serializer import Serializer, SupportedTypes
 from .connection import Connection
@@ -78,6 +78,28 @@ class ZCached:
         command: str = f"*2\r\n$3\r\nGET\r\n${len(key)}\r\n{key}\r\n"
         return self.connection.send(command.encode())
 
+    def mget(self, *keys: str) -> Result[dict[str, Any]]:
+        """
+        Method to send a mget command to the database.
+        This command allows you to retrieve multiple values simultaneously.
+
+        Example usage: ``client.mget("key1", "key2", "key3")``
+
+        .. note::
+            For every key that does not hold a string value or does not exist,
+            the special value null is returned. Because of this, the operation never fails.
+
+        Parameters
+        ----------
+        keys:
+            Keys to retrieve values from the database.
+        """
+        command: str = f"*{1 + len(keys)}\r\n$4\r\nMGET\r\n"
+        for key in keys:
+            command += f"${len(key)}\r\n{key}\r\n"
+
+        return self.connection.send(command.encode())
+
     def set(self, key: str, value: SupportedTypes) -> Result[str]:
         """
         Method to create a new database record.
@@ -95,6 +117,24 @@ class ZCached:
         )
         return self.connection.send(command.encode())
 
+    def mset(self, **params: SupportedTypes) -> Result[str]:
+        """
+        Method to set multiple database records simultaneously.
+
+        Example usage: ``client.mset(key1="value1", key2="value2", key3="value3")``
+
+        Parameters
+        ----------
+        params:
+            Keyword arguments representing key-value pairs to be set in the database.
+        """
+        command: str = f"*{1 + len(params) * 2}\r\n$4\r\nMSET\r\n"
+        for key, value in params.items():
+            serializer: Serializer = Serializer(value)
+            command += f"${len(key)}\r\n{key}\r\n{serializer.serialize()}"
+
+        return self.connection.send(command.encode())
+
     def delete(self, key: str) -> Result[str]:
         """
         Method to delete a database record by key.
@@ -109,7 +149,7 @@ class ZCached:
 
     def is_alive(self) -> bool:
         """
-        Checks if the client is currently connected to the server and responsive.
+        Checks if the client is currently connected to the server.
 
         .. note::
             This method sends a ping command to the connected server.

@@ -4,13 +4,30 @@ SupportedTypes = Union[str, int, float, bool, list, tuple, dict, set, None]
 
 
 class Serializer:
-    # TODO: Docstrings
     """
-    A class for serializing values of different data types.
+    A class for serializing Python objects into string payload.
     """
 
     def process(self, value: SupportedTypes) -> str:
-        """Automatically serializes the raw value."""
+        """
+        Serialize the given value into its string representation.
+
+        Parameters
+        ----------
+        value:
+            Object to serialize.
+
+        Raises
+        ------
+        TypeError
+            If the type of value is not supported for serialization.
+        """
+        if not isinstance(value, SupportedTypes):
+            raise TypeError(
+                "Specified value for serialization has an unsupported type."
+                f"Currently the serializer supports: {SupportedTypes}"
+            )
+
         if value is None:
             return self.none()
 
@@ -28,7 +45,7 @@ class Serializer:
         return handlers[type(value)](value)
 
     @staticmethod
-    def serialize_str(value: str) -> str:
+    def serialize_str(value: SupportedTypes) -> str:
         """Returns the serialized value of type str."""
         assert isinstance(value, str)
         return f"${len(value)}\r\n{value}\r\n"
@@ -70,7 +87,7 @@ class Serializer:
         text: str = f"%{len(value)}\r\n"
 
         for k, v in value.items():
-            text += f"${len(str(k))}\r\n{k}\r\n{self.process(v)}\r\n"
+            text += f"${len(str(k))}\r\n{k}\r\n{self.process(v)}"
 
         return text
 

@@ -26,6 +26,9 @@ class Connection:
     connection_attempts:
         The maximum number of attempts to establish a connection with the server.
         If the maximum number of attempts is exceeded, an error will be raised.
+    reconnect:
+        Flag indicating whether automatic reconnection attempt should be made
+        in case of a broken connection.
 
     Attributes
     ----------
@@ -35,12 +38,16 @@ class Connection:
         The size of the buffer for receiving data from the server.
     connection_attempts:
         The maximum number of attempts to establish a connection with the server.
+    reconnect:
+        Flag indicating whether automatic reconnection attempt should be made
+        in case of a broken connection.
     """
 
     __slots__ = (
         "socket",
         "buff_size",
         "connection_attempts",
+        "reconnect",
         "_backoff",
         "_port",
         "_host",
@@ -51,12 +58,14 @@ class Connection:
         self,
         host: str,
         port: int,
+        connection_attempts: int,
+        reconnect: bool,
         buff_size: int = 1024,
-        connection_attempts: int = 3,
     ):
         self.socket: socket = socket(AF_INET, SOCK_STREAM)
         self.buff_size: int = buff_size
         self.connection_attempts: int = connection_attempts
+        self.reconnect: bool = reconnect
 
         self._host: str = host
         self._port: int = port
@@ -84,7 +93,7 @@ class Connection:
 
         .. note::
             This does not mean that the socket has a connection to the server.
-            The socket connection may be dropped, and we don't update it.
+            The socket connection may be broken, and we do not update it constantly.
         """
         return self._connected
 
@@ -135,12 +144,43 @@ class Connection:
         try:
             logging.debug("Sending data to the server -> %s", data)
             self.socket.send(data)
-        except BrokenPipeError as exception:
+        except BrokenPipeError:
             # This exception occurs when the socket has no connection to the database server.
-            logging.exception(exception)
-            return Result.fail("The connection has been terminated.")
+            if not self.reconnect:
+                return Result.fail("The connection has been terminated.")
 
-        return self.wait_for_response()
+            return self.try_reconnect()
+
+        result: Result = self.wait_for_response()
+        if not self.reconnect or result.error is None:
+            return result
+
+        if result.error != "The connection has been terminated.":
+            return result
+
+        return self.try_reconnect()
+
+    def try_reconnect(self) -> Result[bytes]:
+        """
+        A method to attempt to reconnect to the server if the connection is broken.
+
+        .. note::
+            If the connection is successfully reestablished, the method return a Result object
+            with a failure status and an informational message indicating that the connection
+            was terminated but managed to reestablish it.
+        """
+        logging.debug("Attempting to reconnect to the server...")
+
+        self.socket: socket = socket(AF_INET, SOCK_STREAM)
+        self._connected = False
+        self.connect()
+
+        if self.is_connected is True:
+            return Result.fail(
+                "The connection was terminated, but managed to reestablish it."
+            )
+
+        return Result.fail("The connection has been terminated.")
 
     def wait_for_response(self) -> Result:
         """A loop to wait for the response from the server."""

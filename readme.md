@@ -1,7 +1,9 @@
 # Zcached.py - A client-side library for zcached.
 
-![commits](https://img.shields.io/github/commit-activity/w/xXenvy/zcached.py?style=for-the-badge&color=%2315b328)
-![license](https://img.shields.io/github/license/xXenvy/zcached.py?style=for-the-badge&color=%2315b328)
+![commits](https://img.shields.io/github/commit-activity/w/xXenvy/zcached.py?style=for-the-badge)
+![python versions](https://img.shields.io/pypi/pyversions/zcached.py?style=for-the-badge)
+![PyPI - Implementation](https://img.shields.io/pypi/implementation/zcached.py?style=for-the-badge)
+![GitHub Release](https://img.shields.io/github/v/release/xXenvy/zcached.py?include_prereleases&style=for-the-badge)
 
 ## `📜` Introduction
 Zcached.py is a Python client-side library designed to interact with zcached, a high-performance caching system.

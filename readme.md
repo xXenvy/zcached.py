@@ -1,12 +1,11 @@
 # Zcached.py - A client-side library for zcached.
 
-![commits](https://img.shields.io/github/commit-activity/w/xXenvy/zcached.py?style=for-the-badge)
-![python versions](https://img.shields.io/pypi/pyversions/zcached.py?style=for-the-badge)
-![release](https://img.shields.io/github/v/release/xXenvy/zcached.py?include_prereleases&style=for-the-badge)
+![commits](https://img.shields.io/github/commit-activity/w/xXenvy/zcached.py?style=for-the-badge&color=%2315b328)
+![license](https://img.shields.io/github/license/xXenvy/zcached.py?style=for-the-badge&color=%2315b328)
 
 ## `📜` Introduction
 Zcached.py is a Python client-side library designed to interact with zcached, a high-performance caching system.
-This library provides developers easy-to-use interface for integrating zcached into their Python applications, enabling efficient data caching.
+This library provides developers with an easy-to-use interface for integrating zcached into their Python applications, enabling efficient data caching.
 
 For more information, please see [zcached repository](https://github.com/sectasy0/zcached).
 
@@ -17,7 +16,7 @@ For more information, please see [zcached repository](https://github.com/sectasy
 
 ## `🔧` Installation
 > [!IMPORTANT]  
-> **Library requires python version 3.8 or newer.** (Older also should work, but untested).
+> **Library requires python version 3.8 or newer.** (Older should also work, but untested).
 
 Before installing zcached.py, ensure that you have the zcached server. Instructions for installing the server can be found [here](https://github.com/sectasy0/zcached).
 
@@ -29,12 +28,22 @@ pip install -U zcached.py
 ## `🖊️` Usage
 Here's a basic example demonstrating how to use zcached.py in your Python code:
 ```py
+from typing import List
 from zcached import ZCached, Result
 
-client = ZCached(host="localhost", port=1234)
+client = ZCached(host="localhost", port=5555)
 
-result: Result[str] = client.ping()
-print(result.value)
+if clinet.is_alive() is False:
+  raise RuntimeError("Something went wrong.")
+
+client.set(key="dogs", value=["Pimpek", "Laika"])
+
+dogs_result: Result[List[str]] = client.get(key="dogs")
+dbsize_result: Result[int] = client.dbsize()
+
+client.save()
+client.delete("dogs")
+client.flush()
 ```
 **See more examples [here](https://github.com/xXenvy/zcached.py/tree/master/examples)**
 

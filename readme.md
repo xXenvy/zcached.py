@@ -16,7 +16,7 @@ For more information, please see [zcached repository](https://github.com/sectasy
 
 ## `🔧` Installation
 > [!IMPORTANT]  
-> **Library requires python version 3.8 or newer.** (Older also should work, but untested).
+> **Library requires python version 3.8 or newer.** (Older should also work, but untested).
 
 Before installing zcached.py, ensure that you have the zcached server. Instructions for installing the server can be found [here](https://github.com/sectasy0/zcached).
 
@@ -33,7 +33,7 @@ from zcached import ZCached, Result
 
 client = ZCached(host="localhost", port=5555)
 
-if clinet.is_alive() is False:
+if client.is_alive() is False:
   raise RuntimeError("Something went wrong.")
 
 client.set(key="dogs", value=["Pimpek", "Laika"])

@@ -40,6 +40,8 @@ client.set(key="dogs", value=["Pimpek", "Laika"])
 
 dogs_result: Result[List[str]] = client.get(key="dogs")
 dbsize_result: Result[int] = client.dbsize()
+keys_result: Result[List[str]] = client.keys()
+print(keys_result.value)
 
 client.save()
 client.delete("dogs")

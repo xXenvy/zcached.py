@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Any, ClassVar
+from typing import TYPE_CHECKING, Any, ClassVar, List
 
 from .serializer import Serializer, SupportedTypes
 from .connection import Connection
@@ -73,6 +73,10 @@ class ZCached:
     def save(self) -> Result[str]:
         """Method to save all database records."""
         return self.connection.send(b"*1\r\n$4\r\nSAVE\r\n")
+
+    def keys(self) -> Result[List[str]]:
+        """Retrieve the keys of the database."""
+        return self.connection.send(b"*1\r\n$4\r\nKEYS\r\n")
 
     def get(self, key: str) -> Result:
         """

@@ -19,4 +19,4 @@ __all__: Final[Tuple[str, ...]] = (
     "Reader",
 )
 
-__version__: Final[str] = "1.0.0"
+__version__: Final[str] = "1.0.1"

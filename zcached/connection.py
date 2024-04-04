@@ -144,8 +144,7 @@ class Connection:
         try:
             logging.debug("Sending data to the server -> %s", data)
             self.socket.send(data)
-        except BrokenPipeError:
-            # This exception occurs when the socket has no connection to the database server.
+        except (BrokenPipeError, OSError):
             if not self.reconnect:
                 return Result.fail("The connection has been terminated.")
 

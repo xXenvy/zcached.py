@@ -157,7 +157,7 @@ class Connection:
 
         if result.error == Errors.ConnectionClosed:
             return self.try_reconnect()
-        
+
         return result
 
     def try_reconnect(self) -> Result[bytes]:

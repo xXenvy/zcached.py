@@ -18,9 +18,11 @@ def test_result(value: bytes, error: str | None):
     result2: Result[bytes] = Result(b":50\r\n", None)
 
     if result.error:
+        assert bool(result) is False
         assert result.failure is True
         assert result.is_empty() is True
     else:
+        assert bool(result) is True
         assert result.success is True
         assert result.is_empty() is False
 

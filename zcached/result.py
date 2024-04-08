@@ -41,6 +41,9 @@ class Result(Generic[T]):
     def __ne__(self, other: Any) -> bool:
         return not self.__eq__(other)
 
+    def __bool__(self) -> bool:
+        return self.success
+
     def __repr__(self):
         return f"<Result(success={self.success})>"
 

@@ -32,9 +32,9 @@ class Connection:
 
     Attributes
     ----------
-    socket: :class:`socket`
+    socket:
         The socket object for communicating with the server.
-    buff_size: :class:`int`
+    buff_size:
         The size of the buffer for receiving data from the server.
     connection_attempts:
         The maximum number of attempts to establish a connection with the server.
@@ -99,7 +99,7 @@ class Connection:
 
     def connect(self) -> None:
         """
-        Method to connect a socket to a database server.
+        Method to connect a socket to the database server.
         """
         logging.debug(f"Connecting to {self.host}:{self.port}...")
 
@@ -122,7 +122,7 @@ class Connection:
     def receive(self) -> bytes | None:
         """
         Method to receive the response from the server.
-        None if the server didn't receive any data yet.
+        None if there is no data in the socket yet.
         """
         try:
             data: bytes = self.socket.recv(self.buff_size)
@@ -138,8 +138,8 @@ class Connection:
 
         Parameters
         ----------
-        data: :class:`bytes`
-            Data to send.
+        data:
+            Bytes to send.
         """
         try:
             logging.debug("Sending data to the server -> %s", data)

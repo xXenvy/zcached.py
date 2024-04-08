@@ -8,12 +8,8 @@ if TYPE_CHECKING:
 
 class Deserializer:
     """
-    Deserializer class is responsible for deserializing payload data to python objects.
-
-    This class provides methods to deserialize various data types from a Reader object,
-    including strings, integers, floats, booleans, None, arrays, and dictionaries.
+    The Deserializer class is responsible for converting payload data into Python objects.
     """
-
     __slots__ = ()
 
     def process(self, reader: Reader) -> Any:

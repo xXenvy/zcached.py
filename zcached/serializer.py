@@ -15,12 +15,12 @@ class Serializer:
         Parameters
         ----------
         value:
-            Object to serialize.
+            The Object to serialize.
 
         Raises
         ------
         TypeError
-            If the type of value is not supported for serialization.
+            If the type of value is not supported by serializer.
         """
         if not isinstance(value, SupportedTypes):
             raise TypeError(

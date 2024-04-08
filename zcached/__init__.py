@@ -7,7 +7,7 @@ from .result import Result
 from .serializer import Serializer, SupportedTypes
 from .deserializer import Deserializer
 from .reader import Reader
-from .errors import Errors
+from .enums import Errors
 
 __all__: Final[Tuple[str, ...]] = (
     "ZCached",

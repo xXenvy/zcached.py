@@ -7,7 +7,7 @@ from time import sleep
 
 from .backoff import ExponentialBackoff
 from .result import Result
-from .errors import Errors
+from .enums import Errors
 
 
 class Connection:

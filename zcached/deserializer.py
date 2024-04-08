@@ -10,6 +10,7 @@ class Deserializer:
     """
     The Deserializer class is responsible for converting payload data into Python objects.
     """
+
     __slots__ = ()
 
     def process(self, reader: Reader) -> Any:

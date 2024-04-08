@@ -11,6 +11,13 @@ class Result(Generic[T]):
     """
     Represents the result of the server response.
 
+    Parameters
+    ----------
+    value:
+        A raw value to deserialize.
+    error:
+        Error message detailing why the operation failed.
+
     Attributes
     ----------
     value:

@@ -35,7 +35,7 @@ class ZCached:
 
     Attributes
     ----------
-    connection: :class:`Connection`
+    connection:
         Connection object used by this class.
     """
 
@@ -170,7 +170,7 @@ class ZCached:
     @classmethod
     def from_connection(cls, connection: Connection) -> Self:
         """
-        Classmethod to create client from existing connection.
+        A classmethod to create client from existing connection.
 
         Parameters
         ----------

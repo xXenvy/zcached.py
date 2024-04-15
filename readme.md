@@ -33,6 +33,7 @@ from typing import List
 from zcached import ZCached, Result
 
 client = ZCached(host="localhost", port=5555)
+client.run()
 
 if client.is_alive() is False:
   raise RuntimeError("Something went wrong.")

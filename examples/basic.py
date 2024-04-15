@@ -1,6 +1,8 @@
 from zcached import ZCached, Result
 
 client = ZCached(host="localhost", port=1234)
+client.run()
+
 result: Result[str] = client.ping()
 
 if not result:

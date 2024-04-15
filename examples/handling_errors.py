@@ -2,6 +2,7 @@ from typing import Union
 from zcached import ZCached, Result, Errors
 
 client = ZCached(host="localhost", port=1234)
+client.run()
 
 
 def handle_error(error_message: str, key: Union[str, None] = None) -> None:

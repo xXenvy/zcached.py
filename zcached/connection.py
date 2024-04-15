@@ -206,7 +206,8 @@ class Connection:
             if transfer_complete:
                 # If the first byte is "-", it means that the response is an error.
                 if total_bytes.startswith(b"-"):
-                    return Result.fail(total_bytes.decode())
+                    error_message: str = total_bytes.decode()[1::]
+                    return Result.fail(error_message.replace("\r\n", ""))
 
                 return Result.ok(total_bytes)
 

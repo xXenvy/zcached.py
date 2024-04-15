@@ -7,6 +7,7 @@ from time import sleep
 
 from .backoff import ExponentialBackoff
 from .result import Result
+from .enums import Errors
 
 
 class Connection:
@@ -146,7 +147,7 @@ class Connection:
             self.socket.send(data)
         except (BrokenPipeError, OSError):
             if not self.reconnect:
-                return Result.fail("The connection has been terminated.")
+                return Result.fail(Errors.ConnectionClosed.value)
 
             return self.try_reconnect()
 
@@ -154,10 +155,10 @@ class Connection:
         if not self.reconnect or result.error is None:
             return result
 
-        if result.error != "The connection has been terminated.":
-            return result
+        if result.error == Errors.ConnectionClosed:
+            return self.try_reconnect()
 
-        return self.try_reconnect()
+        return result
 
     def try_reconnect(self) -> Result[bytes]:
         """
@@ -175,11 +176,9 @@ class Connection:
         self.connect()
 
         if self.is_connected is True:
-            return Result.fail(
-                "The connection was terminated, but managed to reestablish it."
-            )
+            return Result.fail(Errors.ConnectionReestablished.value)
 
-        return Result.fail("The connection has been terminated.")
+        return Result.fail(Errors.ConnectionClosed.value)
 
     def wait_for_response(self) -> Result:
         """A loop to wait for the response from the server."""
@@ -207,13 +206,14 @@ class Connection:
             if transfer_complete:
                 # If the first byte is "-", it means that the response is an error.
                 if total_bytes.startswith(b"-"):
-                    return Result.fail(total_bytes.decode())
+                    error_message: str = total_bytes.decode()[1::]
+                    return Result.fail(error_message.replace("\r\n", ""))
 
                 return Result.ok(total_bytes)
 
             if len(data) == 0:  # type: ignore
                 # When socket lose connection to the server it receives empty bytes.
-                return Result.fail("The connection has been terminated.")
+                return Result.fail(Errors.ConnectionClosed.value)
 
             total_bytes += data  # type: ignore
 
@@ -221,6 +221,4 @@ class Connection:
             backoff.reset()
 
         # This should never happen, but the type checker yells.
-        return Result.fail(
-            "This is probably a bug. Please report it here: https://github.com/xXenvy/zcached.py"
-        )
+        return Result.fail(Errors.LibraryBug.value)

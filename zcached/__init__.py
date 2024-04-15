@@ -7,6 +7,7 @@ from .result import Result
 from .serializer import Serializer, SupportedTypes
 from .deserializer import Deserializer
 from .reader import Reader
+from .enums import Errors
 
 __all__: Final[Tuple[str, ...]] = (
     "ZCached",
@@ -17,6 +18,7 @@ __all__: Final[Tuple[str, ...]] = (
     "SupportedTypes",
     "Deserializer",
     "Reader",
+    "Errors",
 )
 
 __version__: Final[str] = "1.0.1"

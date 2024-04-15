@@ -21,4 +21,4 @@ __all__: Final[Tuple[str, ...]] = (
     "Errors",
 )
 
-__version__: Final[str] = "1.0.1"
+__version__: Final[str] = "1.1.1"

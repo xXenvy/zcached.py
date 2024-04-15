@@ -128,7 +128,7 @@ class Connection:
         try:
             data: bytes = self.socket.recv(self.buff_size)
             logging.debug("Received a response -> %s", data)
-        except BlockingIOError:
+        except (BlockingIOError, ConnectionAbortedError):
             return None
 
         return data

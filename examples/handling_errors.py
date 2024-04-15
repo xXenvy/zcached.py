@@ -16,4 +16,3 @@ def handle_error(error_message: str, key: Union[str, None] = None) -> None:
 result: Result[str] = client.get("key123")
 if result.error:
     handle_error(error_message=result.error, key="key123")
-

@@ -9,7 +9,7 @@ def handle_error(error_message: str, key: Union[str, None] = None) -> None:
         raise ConnectionError("Connection closed.")
     if error_message == Errors.ConnectionClosed:
         return  # The connection was dropped, but managed to restore it.
-    if error_message == Errors.not_found(key):
+    if key and error_message == Errors.not_found(key):
         raise RuntimeError("Key not found.")
 
 

@@ -27,4 +27,3 @@ class Errors(str, Enum):
     def unknown_command(name: str) -> str:
         """Generates an error message for an unknown command."""
         return f"ERR unknown command '{name}'"
-

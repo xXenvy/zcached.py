@@ -53,10 +53,13 @@ class ZCached:
         self.connection: Connection = Connection(
             host, port, connection_attempts, reconnect, buff_size
         )
-        self.connection.connect()
 
     def __repr__(self) -> str:
         return f"ZCached(connection={self.connection})"
+
+    def run(self) -> None:
+        """Establishes a connection with the database server."""
+        self.connection.connect()
 
     def ping(self) -> Result[str]:
         """Send a ping command to the database."""

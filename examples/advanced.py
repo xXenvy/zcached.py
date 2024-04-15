@@ -42,6 +42,7 @@ class ShopManager(ZCached):
 
 if __name__ == "__main__":
     manager = ShopManager(host="localhost", port=5555)
+    manager.run()
     manager.set_items(
         [
             Item(name="foo", description="test", price=50.99, quantity=1),

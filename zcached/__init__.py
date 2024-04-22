@@ -19,7 +19,7 @@ __all__: Final[Tuple[str, ...]] = (
     "Deserializer",
     "Reader",
     "Errors",
-    "__version__"
+    "__version__",
 )
 
 __version__: Final[str] = "1.1.1"

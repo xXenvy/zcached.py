@@ -5,7 +5,7 @@
 ![release](https://img.shields.io/github/v/release/xXenvy/zcached.py?include_prereleases&style=for-the-badge&color=%2315b328)
 
 ## `📜` Introduction
-Zcached.py is a Python client-side library designed to interact with zcached, a high-performance caching system.
+Zcached.py is a Python client-side library designed to interact with zcached, a high-performance in-memory caching system.
 This library provides developers an easy-to-use interface for integrating zcached into their Python applications, enabling efficient data caching.
 
 For more information, please see [zcached repository](https://github.com/sectasy0/zcached).
@@ -19,9 +19,9 @@ For more information, please see [zcached repository](https://github.com/sectasy
 > [!IMPORTANT]  
 > **Library requires python version 3.8 or newer.** (Older also should work, but untested).
 
-Before installing zcached.py, ensure that you have the zcached server. Instructions for installing the server can be found [here](https://github.com/sectasy0/zcached).
+Before installing zcached.py, ensure that you have the zcached server. Instructions for installing and running the server can be found [here](https://github.com/sectasy0/zcached).
 
-Once the zcached server is installed, you can proceed to install zcached.py using pip:
+Once the zcached server is ready to use, you can proceed to install zcached.py using pip:
 ```shell
 pip install -U zcached.py
 ```

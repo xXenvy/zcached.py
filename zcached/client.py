@@ -173,6 +173,23 @@ class ZCached:
         command: str = f"*2\r\n$6\r\nDELETE\r\n${len(key)}\r\n{key}\r\n"
         return self.connection.send(command.encode())
 
+    def exists(self, key: str) -> bool:
+        """
+        Checks if the specified key exists in the database.
+
+        Parameters
+        ----------
+        key:
+            The key to check for existence in the database.
+
+        Notes
+        -----
+        **Using this method directly may be unsafe as it does not verify the connection status.**
+        When the key exists in the database, but the connection is broken, the value False will be returned.
+        Because of this it's recommended to use this method only when the connection to the server is guaranteed.
+        """
+        return bool(self.get(key))
+
     def is_alive(self) -> bool:
         """
         Checks if the client is currently connected to the server.

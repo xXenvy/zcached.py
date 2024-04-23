@@ -60,7 +60,7 @@ class ZCached:
             buff_size=buff_size,
             connection_attempts=connection_attempts,
             reconnect=reconnect,
-            timeout_limit=timeout_limit
+            timeout_limit=timeout_limit,
         )
 
     def __repr__(self) -> str:
@@ -199,5 +199,5 @@ class ZCached:
             buff_size=connection.buff_size,
             connection_attempts=connection.connection_attempts,
             reconnect=connection.reconnect,
-            timeout_limit=connection.timeout_limit
+            timeout_limit=connection.timeout_limit,
         )

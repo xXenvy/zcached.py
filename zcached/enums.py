@@ -7,6 +7,7 @@ class Errors(str, Enum):
         "The connection was terminated, but managed to reestablish it."
     )
     LibraryBug = "This is probably a library bug. Please report it here: https://github.com/xXenvy/zcached.py"
+    TimeoutLimit = "The waiting time limit for a response has been reached."
 
     # Server side errors:
     BadRequest = "ERR bad request"

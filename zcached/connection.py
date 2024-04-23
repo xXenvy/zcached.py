@@ -208,7 +208,9 @@ class Connection:
                         f"There is no data in the socket. Timeout: {timeout}s."
                     )
                     if backoff.total >= float(self.timeout_limit):
-                        logging.error("The waiting time limit for a response has been reached.")
+                        logging.error(
+                            "The waiting time limit for a response has been reached."
+                        )
                         return Result.fail(Errors.TimeoutLimit.value)
 
                     sleep(timeout)

@@ -81,6 +81,10 @@ class ZCached:
         """Retrieve the keys of the database."""
         return self.connection.send(b"*1\r\n$4\r\nKEYS\r\n")
 
+    def lastsave(self) -> Result[int]:
+        """Method to retrieve the Unix timestamp of the last successful database save."""
+        return self.connection.send(b"*1\r\n$8\r\nLASTSAVE\r\n")
+
     def get(self, key: str) -> Result:
         """
         Method to send a get command to the database.

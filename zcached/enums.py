@@ -17,6 +17,7 @@ class Errors(str, Enum):
     KeyNotString = "TYPERR key not string"
     NotBoolean = "TYPERR not boolean"
     NotInteger = "TYPERR not integer"
+    SaveFailure = "ERR there is no data to save"
 
     @staticmethod
     def not_found(key: str) -> str:

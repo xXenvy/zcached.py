@@ -6,12 +6,18 @@ IS_SERVER_RUNNING = False
 
 def test_connection():
     connection = Connection(
-        host="localhost", port=5555, connection_attempts=2, buff_size=2, reconnect=False
+        host="localhost",
+        port=5555,
+        connection_attempts=2,
+        buff_size=512,
+        reconnect=False,
+        timeout_limit=5,
     )
 
     assert connection.host == "localhost"
+    assert connection.timeout_limit == 5
     assert connection.port == 5555
-    assert connection.buff_size == 2
+    assert connection.buff_size == 512
     assert connection.connection_attempts == 2
     assert connection.is_connected is False
     assert connection.socket.getblocking() is True

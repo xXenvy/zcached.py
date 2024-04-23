@@ -29,9 +29,12 @@ class ZCached:
     reconnect:
         Flag indicating whether automatic reconnection attempt should be made
         in case of a broken connection.
+    timeout_limit:
+        The maximum time in seconds to wait for a response from the server.
 
-        .. note::
-            There is an option to do a reconnect manually, using the ``ZCached.connection.try_reconnect()`` method.
+    Notes
+    -----
+    There is a way to do a reconnect manually, using the ``ZCached.connection.try_reconnect()`` method.
 
     Attributes
     ----------
@@ -49,9 +52,15 @@ class ZCached:
         buff_size: int = 1024,
         connection_attempts: int = 3,
         reconnect: bool = True,
+        timeout_limit: int = 10,
     ) -> None:
         self.connection: Connection = Connection(
-            host, port, connection_attempts, reconnect, buff_size
+            host=host,
+            port=port,
+            buff_size=buff_size,
+            connection_attempts=connection_attempts,
+            reconnect=reconnect,
+            timeout_limit=timeout_limit,
         )
 
     def __repr__(self) -> str:
@@ -190,4 +199,5 @@ class ZCached:
             buff_size=connection.buff_size,
             connection_attempts=connection.connection_attempts,
             reconnect=connection.reconnect,
+            timeout_limit=connection.timeout_limit,
         )

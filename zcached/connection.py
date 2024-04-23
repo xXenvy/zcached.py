@@ -30,6 +30,8 @@ class Connection:
     reconnect:
         Flag indicating whether automatic reconnection attempt should be made
         in case of a broken connection.
+    timeout_limit:
+        The maximum time in seconds to wait for a response from the server.
 
     Attributes
     ----------
@@ -42,6 +44,8 @@ class Connection:
     reconnect:
         Flag indicating whether automatic reconnection attempt should be made
         in case of a broken connection.
+    timeout_limit:
+        The maximum time in seconds to wait for a response from the server.
     """
 
     __slots__ = (
@@ -49,6 +53,7 @@ class Connection:
         "buff_size",
         "connection_attempts",
         "reconnect",
+        "timeout_limit",
         "_backoff",
         "_port",
         "_host",
@@ -61,12 +66,14 @@ class Connection:
         port: int,
         connection_attempts: int,
         reconnect: bool,
-        buff_size: int = 1024,
+        timeout_limit: int,
+        buff_size: int,
     ):
         self.socket: socket = socket(AF_INET, SOCK_STREAM)
         self.buff_size: int = buff_size
         self.connection_attempts: int = connection_attempts
         self.reconnect: bool = reconnect
+        self.timeout_limit: int = timeout_limit
 
         self._host: str = host
         self._port: int = port
@@ -200,6 +207,12 @@ class Connection:
                     logging.debug(
                         f"There is no data in the socket. Timeout: {timeout}s."
                     )
+                    if backoff.total >= float(self.timeout_limit):
+                        logging.error(
+                            "The waiting time limit for a response has been reached."
+                        )
+                        return Result.fail(Errors.TimeoutLimit.value)
+
                     sleep(timeout)
                     continue
 

@@ -22,4 +22,4 @@ __all__: Final[Tuple[str, ...]] = (
     "__version__",
 )
 
-__version__: Final[str] = "1.1.1"
+__version__: Final[str] = "1.2.1"

@@ -11,7 +11,7 @@ def test_connection():
         connection_attempts=2,
         buff_size=512,
         reconnect=False,
-        timeout_limit=5
+        timeout_limit=5,
     )
 
     assert connection.host == "localhost"

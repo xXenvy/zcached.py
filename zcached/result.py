@@ -1,8 +1,7 @@
 from __future__ import annotations
 from typing import Any, Generic, TypeVar, ClassVar
 
-from .deserializer import Deserializer
-from .reader import Reader
+from .protocol import Deserializer, Reader
 
 T = TypeVar("T")
 

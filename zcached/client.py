@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Any, ClassVar, List
 
-from .serializer import Serializer, SupportedTypes
+from .protocol import Serializer, SupportedTypes
 from .connection import Connection
 
 if TYPE_CHECKING:

@@ -52,8 +52,7 @@ client.flush()
 **See more examples [here](https://github.com/xXenvy/zcached.py/tree/master/examples)**
 
 ## `👥` Contributing
-Contributions to zcached.py are welcome!
-If you encounter any issues or have suggestions for improvements, please feel free to open an issue or submit a pull request.
+Contributions to zcached.py are welcome! For more info see: [contributing.md](https://github.com/xXenvy/zcached.py/tree/master/CONTRIBUTING.md)
 
 ## `📕` License
 Zcached.py is licensed under the MIT License.

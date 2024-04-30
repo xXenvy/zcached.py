@@ -5,8 +5,9 @@ from .protocol import Serializer, SupportedTypes
 from .connection import Connection
 
 if TYPE_CHECKING:
-    from .result import Result
     from typing_extensions import Self
+
+    from .result import Result
 
 
 class ZCached:

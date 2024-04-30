@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any, List, Callable, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from zcached.protocol.reader import Reader
+    from .reader import Reader
 
 
 class Deserializer:

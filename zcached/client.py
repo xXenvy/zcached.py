@@ -20,7 +20,7 @@ class ZCached:
         Server host address.
     port:
         Server port number.
-    buff_size:
+    buffer_size:
         The size of the buffer for receiving data from the server, in bytes.
         Larger values for buff_size may allow for more data to be received in a single operation,
         while smaller values can be more memory-efficient but slower.
@@ -50,7 +50,7 @@ class ZCached:
         self,
         host: str,
         port: int = 7556,
-        buff_size: int = 1024,
+        buffer_size: int = 1024,
         connection_attempts: int = 3,
         reconnect: bool = True,
         timeout_limit: int = 10,
@@ -58,7 +58,7 @@ class ZCached:
         self.connection: Connection = Connection(
             host=host,
             port=port,
-            buff_size=buff_size,
+            buffer_size=buffer_size,
             connection_attempts=connection_attempts,
             reconnect=reconnect,
             timeout_limit=timeout_limit,
@@ -214,7 +214,7 @@ class ZCached:
         return cls(
             host=connection.host,
             port=connection.port,
-            buff_size=connection.buff_size,
+            buffer_size=connection.buffer_size,
             connection_attempts=connection.connection_attempts,
             reconnect=connection.reconnect,
             timeout_limit=connection.timeout_limit,

@@ -17,7 +17,7 @@ def test_connection():
     assert connection.host == "localhost"
     assert connection.timeout_limit == 5
     assert connection.port == 5555
-    assert connection.buff_size == 512
+    assert connection.buffer_size == 512
     assert connection.connection_attempts == 2
     assert connection.is_connected is False
     assert connection.socket.getblocking() is True

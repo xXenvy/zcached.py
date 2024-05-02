@@ -69,10 +69,10 @@ class Connection:
         connection_attempts: int,
         reconnect: bool,
         timeout_limit: int,
-        buff_size: int,
+        buffer_size: int,
     ):
         self.socket: socket = socket(AF_INET, SOCK_STREAM)
-        self.buffer_size: int = buff_size
+        self.buffer_size: int = buffer_size
         self.connection_attempts: int = connection_attempts
 
         self.reconnect: bool = reconnect

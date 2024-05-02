@@ -59,7 +59,7 @@ class Connection:
         "_port",
         "_host",
         "_connected",
-        "_lock"
+        "_lock",
     )
 
     def __init__(

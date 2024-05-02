@@ -9,7 +9,7 @@ def test_connection():
         host="localhost",
         port=5555,
         connection_attempts=2,
-        buff_size=512,
+        buffer_size=512,
         reconnect=False,
         timeout_limit=5,
     )

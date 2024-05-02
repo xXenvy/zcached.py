@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import logging
-from socket import socket, SOCK_STREAM, AF_INET
 
+from socket import socket, SOCK_STREAM, AF_INET
+from threading import Lock
 from time import sleep
 
 from .backoff import ExponentialBackoff
@@ -37,7 +38,7 @@ class Connection:
     ----------
     socket:
         The socket object for communicating with the server.
-    buff_size:
+    buffer_size:
         The size of the buffer for receiving data from the server.
     connection_attempts:
         The maximum number of attempts to establish a connection with the server.
@@ -50,7 +51,7 @@ class Connection:
 
     __slots__ = (
         "socket",
-        "buff_size",
+        "buffer_size",
         "connection_attempts",
         "reconnect",
         "timeout_limit",
@@ -58,6 +59,7 @@ class Connection:
         "_port",
         "_host",
         "_connected",
+        "_lock",
     )
 
     def __init__(
@@ -67,11 +69,12 @@ class Connection:
         connection_attempts: int,
         reconnect: bool,
         timeout_limit: int,
-        buff_size: int,
+        buffer_size: int,
     ):
         self.socket: socket = socket(AF_INET, SOCK_STREAM)
-        self.buff_size: int = buff_size
+        self.buffer_size: int = buffer_size
         self.connection_attempts: int = connection_attempts
+
         self.reconnect: bool = reconnect
         self.timeout_limit: int = timeout_limit
 
@@ -80,9 +83,10 @@ class Connection:
 
         self._connected: bool = False
         self._backoff = ExponentialBackoff(0.5, 2, 3)
+        self._lock: Lock = Lock()
 
     def __repr__(self) -> str:
-        return f"<Connection(host={self.host}, port={self.port}, buff_size={self.buff_size})>"
+        return f"<Connection(host={self.host}, port={self.port}, buffer_size={self.buffer_size})>"
 
     @property
     def host(self) -> str:
@@ -133,7 +137,7 @@ class Connection:
         None if there is no data in the socket yet.
         """
         try:
-            data: bytes = self.socket.recv(self.buff_size)
+            data: bytes = self.socket.recv(self.buffer_size)
             logging.debug("Received a response -> %s", data)
         except (BlockingIOError, ConnectionAbortedError):
             return None
@@ -144,28 +148,35 @@ class Connection:
         """
         Method to send data to the server.
 
+        THREAD SAFE.
+
         Parameters
         ----------
         data:
             Bytes to send.
         """
-        try:
-            logging.debug("Sending data to the server -> %s", data)
-            self.socket.send(data)
-        except (BrokenPipeError, OSError):
-            if not self.reconnect:
-                return Result.fail(Errors.ConnectionClosed.value)
+        if self._lock.locked():
+            logging.debug("Waiting for the thread lock to become available.")
 
-            return self.try_reconnect()
+        with self._lock:
 
-        result: Result = self.wait_for_response()
-        if not self.reconnect or result.error is None:
+            try:
+                logging.debug("Sending data to the server -> %s", data)
+                self.socket.send(data)
+            except (BrokenPipeError, OSError):
+                if not self.reconnect:
+                    return Result.fail(Errors.ConnectionClosed.value)
+
+                return self.try_reconnect()
+
+            result: Result = self.wait_for_response()
+            if not self.reconnect or result.error is None:
+                return result
+
+            if result.error == Errors.ConnectionClosed:
+                return self.try_reconnect()
+
             return result
-
-        if result.error == Errors.ConnectionClosed:
-            return self.try_reconnect()
-
-        return result
 
     def try_reconnect(self) -> Result[bytes]:
         """
@@ -188,7 +199,11 @@ class Connection:
         return Result.fail(Errors.ConnectionClosed.value)
 
     def wait_for_response(self) -> Result:
-        """A loop to wait for the response from the server."""
+        """
+        A loop to wait for the response from the server.
+
+        NOT THREAD SAFE.
+        """
         backoff: ExponentialBackoff = ExponentialBackoff(0.1, 1.5, 0.5)
 
         total_bytes: bytes = bytes()

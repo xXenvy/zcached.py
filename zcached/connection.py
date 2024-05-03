@@ -159,7 +159,6 @@ class Connection:
             logging.debug("Waiting for the thread lock to become available.")
 
         with self._lock:
-
             try:
                 logging.debug("Sending data to the server -> %s", data)
                 self.socket.send(data)
@@ -199,11 +198,7 @@ class Connection:
         return Result.fail(Errors.ConnectionClosed.value)
 
     def wait_for_response(self) -> Result:
-        """
-        A loop to wait for the response from the server.
-
-        NOT THREAD SAFE.
-        """
+        """A loop to wait for the response from the server."""
         backoff: ExponentialBackoff = ExponentialBackoff(0.1, 1.5, 0.5)
         total_bytes: bytes = bytes()
 

@@ -237,7 +237,7 @@ class Connection:
 
             total_bytes += data  # type: ignore
 
-            if total_bytes.endswith(b'\x04'):  # Received complete data.
+            if total_bytes.endswith(b"\x04"):  # Received complete data.
 
                 # If the first byte is "-", it means that the response is an error.
                 if total_bytes.startswith(b"-"):

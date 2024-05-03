@@ -236,8 +236,8 @@ class Connection:
 
                 # If the first byte is "-", it means that the response is an error.
                 if total_bytes.startswith(b"-"):
-                    error_message: str = total_bytes[1:-1].decode()
-                    return Result.fail(error_message.replace("\r\n", ""))
+                    error_message: str = total_bytes[1:-3].decode()
+                    return Result.fail(error_message)
 
                 return Result.ok(total_bytes[:-1])
 

@@ -73,27 +73,27 @@ class ZCached:
 
     def ping(self) -> Result[str]:
         """Send a ping command to the database."""
-        return self.connection.send(b"*1\r\n$4\r\nPING\r\n")
+        return self.connection.send(b"*1\r\n$4\r\nPING\r\n\x04")
 
     def flush(self) -> Result[str]:
         """Method to flush all database records."""
-        return self.connection.send(b"*1\r\n$5\r\nFLUSH\r\n")
+        return self.connection.send(b"*1\r\n$5\r\nFLUSH\r\n\x04")
 
     def dbsize(self) -> Result[int]:
         """Retrieve the size of the database."""
-        return self.connection.send(b"*1\r\n$6\r\nDBSIZE\r\n")
+        return self.connection.send(b"*1\r\n$6\r\nDBSIZE\r\n\x04")
 
     def save(self) -> Result[str]:
         """Method to save all database records."""
-        return self.connection.send(b"*1\r\n$4\r\nSAVE\r\n")
+        return self.connection.send(b"*1\r\n$4\r\nSAVE\r\n\x04")
 
     def keys(self) -> Result[List[str]]:
         """Retrieve the keys of the database."""
-        return self.connection.send(b"*1\r\n$4\r\nKEYS\r\n")
+        return self.connection.send(b"*1\r\n$4\r\nKEYS\r\n\x04")
 
     def lastsave(self) -> Result[int]:
         """Method to retrieve the Unix timestamp of the last successful database save."""
-        return self.connection.send(b"*1\r\n$8\r\nLASTSAVE\r\n")
+        return self.connection.send(b"*1\r\n$8\r\nLASTSAVE\r\n\x04")
 
     def get(self, key: str) -> Result:
         """
@@ -104,7 +104,7 @@ class ZCached:
         key:
             The key to retrieve the value from the database.
         """
-        command: str = f"*2\r\n$3\r\nGET\r\n${len(key)}\r\n{key}\r\n"
+        command: str = f"*2\r\n$3\r\nGET\r\n${len(key)}\r\n{key}\r\n\x04"
         return self.connection.send(command.encode())
 
     def mget(self, *keys: str) -> Result[dict[str, Any]]:
@@ -127,7 +127,7 @@ class ZCached:
         for key in keys:
             command += f"${len(key)}\r\n{key}\r\n"
 
-        return self.connection.send(command.encode())
+        return self.connection.send((command + "\x04").encode())
 
     def set(self, key: str, value: SupportedTypes) -> Result[str]:
         """
@@ -141,9 +141,9 @@ class ZCached:
             The value of the record.
         """
         command: str = (
-            f"*3\r\n$3\r\nSET\r\n${len(key)}\r\n{key}\r\n{self._serializer.process(value)}"
+            f"*3\r\n$3\r\nSET\r\n${len(key)}\r\n{key}\r\n{self._serializer.process(value)}\x04"
         )
-        return self.connection.send(command.encode())
+        return self.connection.send((command + "\x04").encode())
 
     def mset(self, **params: SupportedTypes) -> Result[str]:
         """
@@ -160,7 +160,7 @@ class ZCached:
         for key, value in params.items():
             command += f"${len(key)}\r\n{key}\r\n{self._serializer.process(value)}"
 
-        return self.connection.send(command.encode())
+        return self.connection.send((command + "\x04").encode())
 
     def delete(self, key: str) -> Result[str]:
         """
@@ -171,7 +171,7 @@ class ZCached:
         key:
             Key of the record being deleted.
         """
-        command: str = f"*2\r\n$6\r\nDELETE\r\n${len(key)}\r\n{key}\r\n"
+        command: str = f"*2\r\n$6\r\nDELETE\r\n${len(key)}\r\n{key}\r\n\x04"
         return self.connection.send(command.encode())
 
     def exists(self, key: str) -> bool:

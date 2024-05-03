@@ -205,45 +205,46 @@ class Connection:
         NOT THREAD SAFE.
         """
         backoff: ExponentialBackoff = ExponentialBackoff(0.1, 1.5, 0.5)
-
         total_bytes: bytes = bytes()
-        transfer_complete: bool = False
+
+        # Without this, the backoff will have to wait on the first iteration.
+        sleep(0.01)
 
         for timeout in backoff:
             data: bytes | None = self.receive()
 
             if not isinstance(data, bytes):
-                if len(total_bytes) > 0:
-                    # If we already have some data, and this iteration gave us None,
-                    # it means that the data transfer has been completed.
-                    transfer_complete = True
+                if len(total_bytes) >= 1:
+                    logging.debug("Received incomplete data. Awaiting for the rest.")
                 else:
                     # We haven't received any data yet.
                     logging.debug(
                         f"There is no data in the socket. Timeout: {timeout}s."
                     )
-                    if backoff.total >= float(self.timeout_limit):
-                        logging.error(
-                            "The waiting time limit for a response has been reached."
-                        )
-                        return Result.fail(Errors.TimeoutLimit.value)
 
-                    sleep(timeout)
-                    continue
+                if backoff.total >= float(self.timeout_limit):
+                    logging.error(
+                        "The waiting time limit for a response has been reached."
+                    )
+                    return Result.fail(Errors.TimeoutLimit.value)
 
-            if transfer_complete:
-                # If the first byte is "-", it means that the response is an error.
-                if total_bytes.startswith(b"-"):
-                    error_message: str = total_bytes.decode()[1::]
-                    return Result.fail(error_message.replace("\r\n", ""))
-
-                return Result.ok(total_bytes)
+                sleep(timeout)
+                continue
 
             if len(data) == 0:  # type: ignore
                 # When socket lose connection to the server it receives empty bytes.
                 return Result.fail(Errors.ConnectionClosed.value)
 
             total_bytes += data  # type: ignore
+
+            if total_bytes.endswith(b'\x04'):  # Received complete data.
+
+                # If the first byte is "-", it means that the response is an error.
+                if total_bytes.startswith(b"-"):
+                    error_message: str = total_bytes[1:-1].decode()
+                    return Result.fail(error_message.replace("\r\n", ""))
+
+                return Result.ok(total_bytes[:-1])
 
             # ExponentialBackoff should be increased only when we receive None.
             backoff.reset()

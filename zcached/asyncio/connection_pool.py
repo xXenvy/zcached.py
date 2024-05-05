@@ -136,13 +136,22 @@ class ConnectionPool:
             If True, attempts to reconnect only broken connections.
         """
         if not only_broken_connections:
-            await gather(*(con.loop.create_task(con.try_reconnect()) for con in self.connections))
+            await gather(
+                *(con.loop.create_task(con.try_reconnect()) for con in self.connections)
+            )
         else:
-            await gather(*(con.loop.create_task(con.try_reconnect()) for con in self.broken_connections))
+            await gather(
+                *(
+                    con.loop.create_task(con.try_reconnect())
+                    for con in self.broken_connections
+                )
+            )
 
         return len(self.connected_connections)
 
-    def reduce_pool_connections(self, amount: int, delete_pending_connections: bool = False) -> None:
+    def reduce_pool_connections(
+        self, amount: int, delete_pending_connections: bool = False
+    ) -> None:
         """
         Reduces the size of the connection pool by a specified amount.
         By default, the method first removes non-working connections,

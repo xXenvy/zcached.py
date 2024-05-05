@@ -9,6 +9,7 @@ from .connection import AsyncConnection
 class ConnectionPool:
     """
     A pool of asynchronous connections.
+
     Parameters
     ----------
     pool_size:

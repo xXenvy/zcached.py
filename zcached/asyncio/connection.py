@@ -14,6 +14,7 @@ ProtocolT = TypeVar("ProtocolT", bound=asyncio.StreamReaderProtocol)
 class AsyncConnection(Connection, Generic[ProtocolT]):
     """
     An asynchronous connection object to manage communication with the server.
+
     Parameters
     ----------
     host:

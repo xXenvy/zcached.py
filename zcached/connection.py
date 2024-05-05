@@ -21,7 +21,7 @@ class Connection:
         The host address of the server to connect to.
     port:
         The port number of the server to connect to.
-    buff_size:
+    buffer_size:
         The size of the buffer for receiving data from the server, in bytes.
         Larger values for buff_size may allow for more data to be received in a single operation,
         while smaller values can be more memory-efficient but slower.
@@ -128,6 +128,9 @@ class Connection:
                     break
 
                 logging.exception(exception)
+                if not self.reconnect:
+                    break
+
                 logging.warning("Connecting to the server failed. Retrying...")
                 sleep(timeout)
 

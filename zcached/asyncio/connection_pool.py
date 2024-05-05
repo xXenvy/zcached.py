@@ -93,6 +93,7 @@ class ConnectionPool:
     async def extend_pool_by_size(self, size: int) -> None:
         """
         Extends the pool by a specified number of connections.
+
         Parameters
         ----------
         size:
@@ -113,6 +114,7 @@ class ConnectionPool:
     ) -> None:
         """
         Extends the pool with existing connections.
+
         Parameters
         ----------
         connections:
@@ -131,6 +133,7 @@ class ConnectionPool:
         """
         Attempts to reconnect connections in the pool.
         Returns the number of connected connections after reconnection.
+
         Parameters
         ----------
         only_broken_connections:
@@ -159,6 +162,7 @@ class ConnectionPool:
         when this is not enough it takes connections that have 0 pending requests and removes them too.
         If a connection has any pending requests, it doesn't delete it, well,
         unless the delete_pending_connections parameter is on True.
+
         Parameters
         ----------
         amount:
@@ -213,6 +217,7 @@ class ConnectionPool:
         """
         Get the least loaded connection from the pool.
         Only working connections are considered.
+
         Raises
         ------
         IndexError

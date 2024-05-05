@@ -38,6 +38,7 @@ class AsyncZCached:
         The size of the buffer for receiving data from the server, in bytes (default is 1024).
     loop:
         The event loop to be used (default is None, which means using the current event loop).
+
     Attributes
     ----------
     connection_pool:
@@ -136,6 +137,7 @@ class AsyncZCached:
     async def get(self, key: str) -> Result:
         """
         Sends a get command to the database server.
+
         Parameters
         ----------
         key:
@@ -152,9 +154,11 @@ class AsyncZCached:
         Coroutine to send a mget command to the database.
         This command allows you to retrieve multiple values simultaneously.
         Example usage: ``client.mget("key1", "key2", "key3")``
+
         .. note::
             For every key that does not hold a string value or does not exist,
             the special value null is returned. Because of this, the operation never fails.
+
         Parameters
         ----------
         keys:
@@ -169,6 +173,7 @@ class AsyncZCached:
     async def set(self, key: str, value: SupportedTypes) -> Result[str]:
         """
         Coroutine to create a new database record.
+
         Parameters
         ----------
         key:
@@ -186,6 +191,7 @@ class AsyncZCached:
         """
         Coroutine to set multiple database records simultaneously.
         Example usage: ``client.mset(key1="value1", key2=False, key3=5)``
+
         Parameters
         ----------
         params:
@@ -200,6 +206,7 @@ class AsyncZCached:
     async def delete(self, key: str) -> Result[str]:
         """
         Coroutine to delete a database record by key.
+
         Parameters
         ----------
         key:
@@ -218,10 +225,12 @@ class AsyncZCached:
     async def exists(self, key: str) -> bool:
         """
         Checks if the specified key exists in the database.
+
         Parameters
         ----------
         key:
             The key to check for existence in the database.
+
         Notes
         -----
         **Using this method directly may be unsafe as it does not verify the connections status.**
@@ -244,6 +253,7 @@ class AsyncZCached:
     def from_connection_pool(cls, connection_pool: ConnectionPool) -> Self:
         """
         Creates a client instance from an existing connection pool.
+
         Parameters
         ----------
         connection_pool:

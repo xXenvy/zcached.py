@@ -37,6 +37,7 @@ class AsyncConnection(Connection, Generic[ProtocolT]):
         The event loop to run asynchronous tasks. If None, the default event loop will be used.
     protocol_type:
         The protocol factory which is used to building protocol for managing the connection.
+
     Attributes
     ----------
     connection_attempts:
@@ -92,8 +93,6 @@ class AsyncConnection(Connection, Generic[ProtocolT]):
 
         self._lock: asyncio.Lock = asyncio.Lock()
         self._pending_requests: int = 0
-
-        # todo: add some unical connection hash + ogarnąc logi
 
     def __repr__(self) -> str:
         return f"<AsyncConnection(host={self.host}, port={self.port}, buffer_size={self.buffer_size})>"
@@ -157,6 +156,7 @@ class AsyncConnection(Connection, Generic[ProtocolT]):
     ) -> tuple[asyncio.StreamReader, asyncio.StreamWriter]:
         """
         Coroutine to open a new connection to the server.
+
         Parameters
         ----------
         host:
@@ -197,7 +197,9 @@ class AsyncConnection(Connection, Generic[ProtocolT]):
     async def send(self, data: bytes) -> Result:
         """
         Coroutine to send a data to the server.
+
         TASK SAFE.
+
         Parameters
         ----------
         data:
@@ -235,7 +237,9 @@ class AsyncConnection(Connection, Generic[ProtocolT]):
     async def receive(self, timeout_limit: float | None = None) -> bytes | None:
         """
         Coroutine to receive data from the reader.
+
         NOT TASK SAFE.
+
         Parameters
         ----------
         timeout_limit:
@@ -265,6 +269,7 @@ class AsyncConnection(Connection, Generic[ProtocolT]):
     async def wait_for_response(self) -> Result:
         """
         Coroutine to wait for a complete response from the server asynchronously.
+
         NOT TASK SAFE.
         """
         if not self.is_connected or not self._reader:

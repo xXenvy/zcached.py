@@ -20,7 +20,7 @@ async def test_connnection():
         reconnect=False,
         timeout_limit=0,
         buffer_size=256,
-        protocol_type=MyProtocol
+        protocol_type=MyProtocol,
     )
     assert connection.protocol_type.always_true() is True
     assert connection.protocol is None

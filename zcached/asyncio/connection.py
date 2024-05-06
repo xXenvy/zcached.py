@@ -11,7 +11,7 @@ from ..connection import Connection
 from ..result import Result
 from ..enums import Errors
 
-ProtocolT = TypeVar('ProtocolT', bound=asyncio.StreamReaderProtocol)
+ProtocolT = TypeVar("ProtocolT", bound=asyncio.StreamReaderProtocol)
 
 
 class AsyncConnection(Connection, Generic[ProtocolT]):

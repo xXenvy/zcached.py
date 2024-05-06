@@ -8,13 +8,13 @@ async def test_connection_pool():
     pool: ConnectionPool = ConnectionPool(
         pool_size=3,
         connection_factory=lambda: AsyncConnection(
-            host='127.0.0.1',
+            host="127.0.0.1",
             port=1234,
             connection_attempts=0,
             reconnect=False,
             timeout_limit=1,
-            buffer_size=4096
-        )
+            buffer_size=4096,
+        ),
     )
     assert (len(pool.connections), len(pool.connected_connections)) == (0, 0)
     assert pool.pool_size == 3
@@ -55,18 +55,18 @@ async def test_connection_pool_factory():
     pool: ConnectionPool = ConnectionPool(
         pool_size=0,
         connection_factory=lambda: AsyncConnection(
-            host='192.168.127.12',
+            host="192.168.127.12",
             port=9595,
             connection_attempts=0,
             reconnect=False,
             timeout_limit=1,
-            buffer_size=128
-        )
+            buffer_size=128,
+        ),
     )
     factory = pool.connection_factory
 
     connection: AsyncConnection = factory()
     assert connection.is_connected is False
-    assert connection.port == 9595 and connection.host == '192.168.127.12'
+    assert connection.port == 9595 and connection.host == "192.168.127.12"
     assert connection.connection_attempts == 0 and connection.reconnect is False
     assert connection.timeout_limit == 1 and connection.buffer_size == 128

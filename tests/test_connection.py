@@ -1,5 +1,4 @@
-import pytest
-from zcached import Connection, Result, ZCached
+from zcached import Connection, ZCached
 
 
 def test_connection():

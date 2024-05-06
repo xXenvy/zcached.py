@@ -21,7 +21,8 @@ Welcome to the contributing guide for zcached.py! This guide will walk you throu
 
 3. Install dependencies: Use pip to install the required dependencies for the project.
 > `pip install -r requirements.txt`
->
+
+This is required to run the tests.
 > `pip install -r dev-requirements.txt`
 
 **Your environment is now set up and ready for development or usage!**

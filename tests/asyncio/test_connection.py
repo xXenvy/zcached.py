@@ -41,3 +41,4 @@ async def test_connnection():
     assert (await connection.send(b"DOG")).error == Errors.ConnectionClosed
     assert (await connection.wait_for_response()).error == Errors.ConnectionClosed
     assert await connection.receive(0) is None
+    assert connection.is_locked is False

@@ -162,7 +162,6 @@ class Connection:
             logging.debug("Waiting for the thread lock to become available.")
 
         with self._lock:
-
             try:
                 logging.debug("Sending data to the server -> %s", data)
                 self.socket.send(data)
@@ -237,8 +236,8 @@ class Connection:
             if transfer_complete:
                 # If the first byte is "-", it means that the response is an error.
                 if total_bytes.startswith(b"-"):
-                    error_message: str = total_bytes.decode()[1::]
-                    return Result.fail(error_message.replace("\r\n", ""))
+                    error_message: str = total_bytes.decode()[1:-2]
+                    return Result.fail(error_message)
 
                 return Result.ok(total_bytes)
 

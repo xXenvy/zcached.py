@@ -284,22 +284,22 @@ class AsyncConnection(Connection):
         if not self._reader:
             return Result.fail(Errors.ConnectionClosed.value)
 
-        complete_data: bytes = bytes()
+        try:
+            complete_data: bytes = await self.receive(timeout_limit=self.timeout_limit)
+        except asyncio.TimeoutError:
+            return Result.fail(Errors.TimeoutLimit.value)
 
-        while not complete_data.endswith(b"\x04"):
-            logger.debug(
-                f"{self.id} -> Received incomplete data. Awaiting for the rest."
-            )
+        while True:
             try:
                 data: bytes | None = await self.receive(
-                    timeout_limit=self.timeout_limit
+                    timeout_limit=0.1
                 )
             except asyncio.TimeoutError:
-                return Result.fail(Errors.TimeoutLimit.value)
+                break
 
             if data is None or len(data) == 0:
-                self._connected = False
                 # When socket lose connection to the server it receives empty bytes.
+                self._connected = False
                 return Result.fail(Errors.ConnectionClosed.value)
 
             complete_data += data
@@ -309,10 +309,10 @@ class AsyncConnection(Connection):
 
         # If the first byte is "-", it means that the response is an error.
         if complete_data.startswith(b"-"):
-            error_message: str = complete_data.decode()[1:-3]
+            error_message: str = complete_data.decode()[1:-2]
             return Result.fail(error_message)
 
-        return Result.ok(complete_data[:-1])
+        return Result.ok(complete_data)
 
     async def close(self) -> None:
         """Closes the connection by closing the writer, and waiting until the writer is fully closed."""

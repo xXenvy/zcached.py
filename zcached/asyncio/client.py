@@ -79,7 +79,7 @@ class AsyncZCached:
                     timeout_limit=timeout_limit,
                     buffer_size=buffer_size,
                     loop=loop,
-                    protocol_type=protocol_type
+                    protocol_type=protocol_type,
                 ),
             )
         self.loop: AbstractEventLoop = loop or get_event_loop()

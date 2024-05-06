@@ -56,5 +56,6 @@ async def main():
     print(await manager.get_total_cost())
     await manager.flush()
 
+
 if __name__ == "__main__":
     asyncio.run(main())

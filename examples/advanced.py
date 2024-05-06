@@ -16,9 +16,8 @@ class ShopManager(ZCached):
             raise RuntimeError("Connection closed.")
 
         result: Result[str] = self.set(key="items", value=items)
-
-        if error := result.error:
-            raise RuntimeError(error)
+        if not result:
+            raise RuntimeError(result.error)
 
         return result.value
 
@@ -27,9 +26,8 @@ class ShopManager(ZCached):
             raise RuntimeError("Connection closed.")
 
         result: Result[List[Item]] = self.get(key="items")
-
-        if error := result.error:
-            raise RuntimeError(error)
+        if not result:
+            raise RuntimeError(result.error)
 
         return result.value
 
@@ -41,7 +39,7 @@ class ShopManager(ZCached):
 
 
 if __name__ == "__main__":
-    manager = ShopManager(host="localhost", port=5555)
+    manager = ShopManager(host="127.0.0.1", port=7556)
     manager.run()
     manager.set_items(
         [

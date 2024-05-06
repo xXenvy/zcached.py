@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import logging as logger
-from typing import Any, ClassVar, TYPE_CHECKING
-from asyncio import get_event_loop
+from typing import Any, ClassVar, TYPE_CHECKING, Type, List
+from asyncio import get_event_loop, StreamReaderProtocol
 
 from .connection_pool import ConnectionPool
 from .connection import AsyncConnection
@@ -39,6 +39,8 @@ class AsyncZCached:
         The size of the buffer for receiving data from the server, in bytes (default is 1024).
     loop:
         The event loop to be used (default is None, which means using the current event loop).
+    protocol_type:
+        The protocol type which is used to building protocol for managing the connection.
 
     Attributes
     ----------
@@ -61,6 +63,7 @@ class AsyncZCached:
         timeout_limit: int = 10,
         buffer_size: int = 2048,
         loop: AbstractEventLoop | None = None,
+        protocol_type: Type[StreamReaderProtocol] | None = None,
         **kwargs: Any,
     ):
         if pool := kwargs.get("connection_pool"):
@@ -76,6 +79,7 @@ class AsyncZCached:
                     timeout_limit=timeout_limit,
                     buffer_size=buffer_size,
                     loop=loop,
+                    protocol_type=protocol_type
                 ),
             )
         self.loop: AbstractEventLoop = loop or get_event_loop()
@@ -104,7 +108,7 @@ class AsyncZCached:
 
         return await connection.send(Commands.FLUSH.value)
 
-    async def dbsize(self) -> Result[str]:
+    async def dbsize(self) -> Result[int]:
         """Sends a db size command to the database server."""
         connection: AsyncConnection | None = self.get_connection()
         if not connection:
@@ -120,7 +124,7 @@ class AsyncZCached:
 
         return await connection.send(Commands.SAVE.value)
 
-    async def keys(self) -> Result[str]:
+    async def keys(self) -> Result[List[str]]:
         """Sends a key command to the database server."""
         connection: AsyncConnection | None = self.get_connection()
         if not connection:
@@ -128,7 +132,7 @@ class AsyncZCached:
 
         return await connection.send(Commands.KEYS.value)
 
-    async def lastsave(self) -> Result[str]:
+    async def lastsave(self) -> Result[int]:
         """Sends a last save command to the database server."""
         connection: AsyncConnection | None = self.get_connection()
         if not connection:

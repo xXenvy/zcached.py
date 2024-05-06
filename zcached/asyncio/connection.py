@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Any, Type, TypeVar, Generic
+from typing import Any, Type
 
 import asyncio
 import logging as logger
@@ -11,10 +11,8 @@ from ..connection import Connection
 from ..result import Result
 from ..enums import Errors
 
-ProtocolT = TypeVar("ProtocolT", bound=asyncio.StreamReaderProtocol)
 
-
-class AsyncConnection(Connection, Generic[ProtocolT]):
+class AsyncConnection(Connection):
     """
     An asynchronous connection object to manage communication with the server.
 
@@ -39,7 +37,7 @@ class AsyncConnection(Connection, Generic[ProtocolT]):
     loop:
         The event loop to run asynchronous tasks. If None, the default event loop will be used.
     protocol_type:
-        The protocol factory which is used to building protocol for managing the connection.
+        The protocol type which is used to building protocol for managing the connection.
 
     Attributes
     ----------
@@ -70,12 +68,12 @@ class AsyncConnection(Connection, Generic[ProtocolT]):
         self,
         host: str,
         port: int,
-        connection_attempts: int,
-        reconnect: bool,
-        timeout_limit: int,
-        buffer_size: int,
+        connection_attempts: int = 3,
+        reconnect: bool = True,
+        timeout_limit: int = 15,
+        buffer_size: int = 2048,
         loop: asyncio.AbstractEventLoop | None = None,
-        protocol_type: Type[ProtocolT] | None = None,
+        protocol_type: Type[asyncio.StreamReaderProtocol] | None = None,
     ) -> None:
         super().__init__(
             host=host,
@@ -87,10 +85,10 @@ class AsyncConnection(Connection, Generic[ProtocolT]):
         )
         self.loop: asyncio.AbstractEventLoop = loop or asyncio.get_event_loop()
 
-        self._protocol_type: Type[ProtocolT] = (  # pyright: ignore
+        self._protocol_type: Type[asyncio.StreamReaderProtocol] = (  # pyright: ignore
             protocol_type or asyncio.StreamReaderProtocol
         )
-        self._protocol: ProtocolT | None = None
+        self._protocol: asyncio.StreamReaderProtocol | None = None
 
         self._reader: asyncio.StreamReader | None = None
         self._writer: asyncio.StreamWriter | None = None
@@ -100,7 +98,7 @@ class AsyncConnection(Connection, Generic[ProtocolT]):
         self._id: str = "".join([choice(ascii_uppercase) for _ in range(6)])
 
     def __repr__(self) -> str:
-        return f"<AsyncConnection(host={self.host}, port={self.port}, buffer_size={self.buffer_size})>"
+        return f"<AsyncConnection(host={self.host}, port={self.port}, buffer_size={self.buffer_size}, id={self.id})>"
 
     @property
     def id(self) -> str:
@@ -108,12 +106,12 @@ class AsyncConnection(Connection, Generic[ProtocolT]):
         return f"#{self._id}-{self.port}"
 
     @property
-    def protocol(self) -> ProtocolT | None:
+    def protocol(self) -> asyncio.StreamReaderProtocol | None:
         """The protocol for managing the connection. If available."""
         return self._protocol
 
     @property
-    def protocol_type(self) -> Type[ProtocolT]:
+    def protocol_type(self) -> Type[asyncio.StreamReaderProtocol]:
         """The type of protocol used for managing the connection."""
         return self._protocol_type
 

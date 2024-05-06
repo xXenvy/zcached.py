@@ -21,7 +21,7 @@ class Connection:
         The host address of the server to connect to.
     port:
         The port number of the server to connect to.
-    buff_size:
+    buffer_size:
         The size of the buffer for receiving data from the server, in bytes.
         Larger values for buff_size may allow for more data to be received in a single operation,
         while smaller values can be more memory-efficient but slower.
@@ -128,6 +128,9 @@ class Connection:
                     break
 
                 logging.exception(exception)
+                if not self.reconnect:
+                    break
+
                 logging.warning("Connecting to the server failed. Retrying...")
                 sleep(timeout)
 
@@ -139,7 +142,7 @@ class Connection:
         try:
             data: bytes = self.socket.recv(self.buffer_size)
             logging.debug("Received a response -> %s", data)
-        except (BlockingIOError, ConnectionAbortedError):
+        except (BlockingIOError, ConnectionAbortedError, OSError):
             return None
 
         return data
@@ -159,7 +162,6 @@ class Connection:
             logging.debug("Waiting for the thread lock to become available.")
 
         with self._lock:
-
             try:
                 logging.debug("Sending data to the server -> %s", data)
                 self.socket.send(data)
@@ -234,8 +236,8 @@ class Connection:
             if transfer_complete:
                 # If the first byte is "-", it means that the response is an error.
                 if total_bytes.startswith(b"-"):
-                    error_message: str = total_bytes.decode()[1::]
-                    return Result.fail(error_message.replace("\r\n", ""))
+                    error_message: str = total_bytes.decode()[1:-2]
+                    return Result.fail(error_message)
 
                 return Result.ok(total_bytes)
 

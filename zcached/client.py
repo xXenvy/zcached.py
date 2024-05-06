@@ -3,11 +3,12 @@ from typing import TYPE_CHECKING, Any, ClassVar, List
 
 from .protocol import Serializer, SupportedTypes
 from .connection import Connection
+from .enums import Commands
 
 if TYPE_CHECKING:
-    from typing_extensions import Self
-
     from .result import Result
+
+    from typing_extensions import Self
 
 
 class ZCached:
@@ -50,19 +51,23 @@ class ZCached:
         self,
         host: str,
         port: int = 7556,
-        buffer_size: int = 1024,
+        buffer_size: int = 2048,
         connection_attempts: int = 3,
         reconnect: bool = True,
         timeout_limit: int = 10,
+        **kwargs: Any,
     ) -> None:
-        self.connection: Connection = Connection(
-            host=host,
-            port=port,
-            buffer_size=buffer_size,
-            connection_attempts=connection_attempts,
-            reconnect=reconnect,
-            timeout_limit=timeout_limit,
-        )
+        if connection := kwargs.get("connection"):
+            self.connection: Connection = connection
+        else:
+            self.connection: Connection = Connection(
+                host=host,
+                port=port,
+                buffer_size=buffer_size,
+                connection_attempts=connection_attempts,
+                reconnect=reconnect,
+                timeout_limit=timeout_limit,
+            )
 
     def __repr__(self) -> str:
         return f"ZCached(connection={self.connection})"
@@ -73,27 +78,27 @@ class ZCached:
 
     def ping(self) -> Result[str]:
         """Send a ping command to the database."""
-        return self.connection.send(b"*1\r\n$4\r\nPING\r\n")
+        return self.connection.send(Commands.PING.value)
 
     def flush(self) -> Result[str]:
         """Method to flush all database records."""
-        return self.connection.send(b"*1\r\n$5\r\nFLUSH\r\n")
+        return self.connection.send(Commands.FLUSH.value)
 
     def dbsize(self) -> Result[int]:
         """Retrieve the size of the database."""
-        return self.connection.send(b"*1\r\n$6\r\nDBSIZE\r\n")
+        return self.connection.send(Commands.DB_SIZE.value)
 
     def save(self) -> Result[str]:
         """Method to save all database records."""
-        return self.connection.send(b"*1\r\n$4\r\nSAVE\r\n")
+        return self.connection.send(Commands.SAVE.value)
 
     def keys(self) -> Result[List[str]]:
         """Retrieve the keys of the database."""
-        return self.connection.send(b"*1\r\n$4\r\nKEYS\r\n")
+        return self.connection.send(Commands.KEYS.value)
 
     def lastsave(self) -> Result[int]:
         """Method to retrieve the Unix timestamp of the last successful database save."""
-        return self.connection.send(b"*1\r\n$8\r\nLASTSAVE\r\n")
+        return self.connection.send(Commands.LAST_SAVE.value)
 
     def get(self, key: str) -> Result:
         """
@@ -104,8 +109,7 @@ class ZCached:
         key:
             The key to retrieve the value from the database.
         """
-        command: str = f"*2\r\n$3\r\nGET\r\n${len(key)}\r\n{key}\r\n"
-        return self.connection.send(command.encode())
+        return self.connection.send(Commands.get(key))
 
     def mget(self, *keys: str) -> Result[dict[str, Any]]:
         """
@@ -116,18 +120,14 @@ class ZCached:
 
         .. note::
             For every key that does not hold a string value or does not exist,
-            the special value null is returned. Because of this, the operation never fails.
+            the special value None is returned. Because of this, the operation never fails.
 
         Parameters
         ----------
         keys:
             Keys to retrieve values from the database.
         """
-        command: str = f"*{1 + len(keys)}\r\n$4\r\nMGET\r\n"
-        for key in keys:
-            command += f"${len(key)}\r\n{key}\r\n"
-
-        return self.connection.send(command.encode())
+        return self.connection.send(Commands.mget(*keys))
 
     def set(self, key: str, value: SupportedTypes) -> Result[str]:
         """
@@ -140,27 +140,20 @@ class ZCached:
         value:
             The value of the record.
         """
-        command: str = (
-            f"*3\r\n$3\r\nSET\r\n${len(key)}\r\n{key}\r\n{self._serializer.process(value)}"
-        )
-        return self.connection.send(command.encode())
+        return self.connection.send(Commands.set(key, value))
 
     def mset(self, **params: SupportedTypes) -> Result[str]:
         """
         Method to set multiple database records simultaneously.
 
-        Example usage: ``client.mset(key1="value1", key2="value2", key3="value3")``
+        Example usage: ``client.mset(key1="value1", key2=True, key3=9999)``
 
         Parameters
         ----------
         params:
             Keyword arguments representing key-value pairs to be set in the database.
         """
-        command: str = f"*{1 + len(params) * 2}\r\n$4\r\nMSET\r\n"
-        for key, value in params.items():
-            command += f"${len(key)}\r\n{key}\r\n{self._serializer.process(value)}"
-
-        return self.connection.send(command.encode())
+        return self.connection.send(Commands.mset(**params))
 
     def delete(self, key: str) -> Result[str]:
         """
@@ -171,8 +164,7 @@ class ZCached:
         key:
             Key of the record being deleted.
         """
-        command: str = f"*2\r\n$6\r\nDELETE\r\n${len(key)}\r\n{key}\r\n"
-        return self.connection.send(command.encode())
+        return self.connection.send(Commands.delete(key))
 
     def exists(self, key: str) -> bool:
         """
@@ -198,8 +190,7 @@ class ZCached:
         .. note::
             This method sends a ping command to the connected server.
         """
-        result: Result = self.ping()
-        return result.error is None
+        return bool(self.ping())
 
     @classmethod
     def from_connection(cls, connection: Connection) -> Self:
@@ -211,11 +202,4 @@ class ZCached:
         connection:
             Created connection object.
         """
-        return cls(
-            host=connection.host,
-            port=connection.port,
-            buffer_size=connection.buffer_size,
-            connection_attempts=connection.connection_attempts,
-            reconnect=connection.reconnect,
-            timeout_limit=connection.timeout_limit,
-        )
+        return cls(host=connection.host, connection=connection)

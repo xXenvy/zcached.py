@@ -51,7 +51,7 @@ class ZCached:
         self,
         host: str,
         port: int = 7556,
-        buffer_size: int = 1024,
+        buffer_size: int = 2048,
         connection_attempts: int = 3,
         reconnect: bool = True,
         timeout_limit: int = 10,

@@ -1,9 +1,12 @@
 from __future__ import annotations
 
-from typing import Callable, List, Iterable
+import logging as logger
+
+from typing import Callable, List, Iterable, TYPE_CHECKING
 from asyncio import Task, gather
 
-from .connection import AsyncConnection
+if TYPE_CHECKING:
+    from .connection import AsyncConnection
 
 
 class ConnectionPool:
@@ -18,6 +21,8 @@ class ConnectionPool:
         A callable that returns a new instance of AsyncConnection.
     """
 
+    __slots__ = ("_pool_size", "_connection_factory", "_connections")
+
     def __init__(
         self,
         pool_size: int,
@@ -26,6 +31,8 @@ class ConnectionPool:
         self._pool_size: int = pool_size
         self._connection_factory: Callable[[], AsyncConnection] = connection_factory
         self._connections: List[AsyncConnection] = []
+
+        logger.info(f"Initiated a new connection pool. Pool size: {self._pool_size}.")
 
     def __repr__(self) -> str:
         return f"<ConnectionPool(size={self._pool_size}, connected_connections={len(self.connected_connections)})>"
@@ -70,6 +77,7 @@ class ConnectionPool:
     async def setup(self) -> None:
         """Creates connections in the pool and connects them."""
         self._connections.clear()
+        logger.info(f"Filling the connection pool")
 
         tasks: List[Task] = []
 
@@ -78,10 +86,12 @@ class ConnectionPool:
             self._connections.append(connection)
             tasks.append(connection.loop.create_task(connection.connect()))
 
+        logger.debug(f"Running all connections in the pool")
         await gather(*tasks)
 
     async def close(self) -> None:
         """Closes all connected connections in the pool."""
+        logger.info(f"Closing: %s connnections in the pool", len(self.connected_connections))
         await gather(
             *(
                 conn.loop.create_task(conn.close())
@@ -93,6 +103,7 @@ class ConnectionPool:
     async def extend_pool_by_size(self, size: int) -> None:
         """
         Extends the pool by a specified number of connections.
+        The pool size will be increased if necessary.
 
         Parameters
         ----------
@@ -108,12 +119,14 @@ class ConnectionPool:
 
         self._pool_size = len(self._connections)
         await gather(*tasks)
+        logger.debug("Extended connection pool by size. New size: %s.", self._pool_size)
 
     async def extend_pool_by_connections(
         self, connections: Iterable[AsyncConnection]
     ) -> None:
         """
         Extends the pool with existing connections.
+        The pool size will be increased if necessary.
 
         Parameters
         ----------
@@ -128,6 +141,7 @@ class ConnectionPool:
 
         self._pool_size = len(self._connections)
         await gather(*tasks)
+        logger.debug("Extended connection pool by connections. New size: %s.", self._pool_size)
 
     async def reconnect(self, only_broken_connections: bool = True) -> int:
         """
@@ -139,6 +153,7 @@ class ConnectionPool:
         only_broken_connections:
             If True, attempts to reconnect only broken connections.
         """
+        logger.debug("Reconnecting connection pool. Only broken connections: %s.", only_broken_connections)
         if not only_broken_connections:
             await gather(
                 *(con.loop.create_task(con.try_reconnect()) for con in self.connections)
@@ -171,6 +186,7 @@ class ConnectionPool:
             If True, the method will also delete, when necessary, connections that have pending requests.
             This is not strongly recommended!
         """
+        logger.debug("Reducing the pool connections. amount: %s, pending: %s.", amount, delete_pending_connections)
         if amount <= 0:
             return
 
@@ -206,6 +222,7 @@ class ConnectionPool:
 
     def cleanup_broken_connections(self) -> None:
         """Closes broken connections and removes them from the list of connections."""
+        logger.info("Clearing non-working connections...")
         if not self.broken_connections:
             return
 

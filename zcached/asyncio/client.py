@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging as logger
 from typing import Any, ClassVar, TYPE_CHECKING
 from asyncio import get_event_loop
 
@@ -58,7 +59,7 @@ class AsyncZCached:
         connection_attempts: int = 3,
         reconnect: bool = True,
         timeout_limit: int = 10,
-        buffer_size: int = 1024,
+        buffer_size: int = 2048,
         loop: AbstractEventLoop | None = None,
         **kwargs: Any,
     ):
@@ -84,6 +85,7 @@ class AsyncZCached:
 
     async def run(self) -> None:
         """Establishes connections with the database server using connection pool."""
+        logger.info("Running the zcached client...")
         await self.connection_pool.setup()
 
     async def ping(self) -> Result[str]:

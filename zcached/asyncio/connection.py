@@ -4,6 +4,9 @@ from typing import Any, Type, TypeVar, Generic
 import asyncio
 import logging as logger
 
+from string import ascii_uppercase
+from random import choice
+
 from ..connection import Connection
 from ..result import Result
 from ..enums import Errors
@@ -60,6 +63,7 @@ class AsyncConnection(Connection, Generic[ProtocolT]):
         "_writer",
         "_protocol",
         "_pending_requests",
+        "_id"
     )
 
     def __init__(
@@ -93,9 +97,15 @@ class AsyncConnection(Connection, Generic[ProtocolT]):
 
         self._lock: asyncio.Lock = asyncio.Lock()
         self._pending_requests: int = 0
+        self._id: str = "".join([choice(ascii_uppercase) for _ in range(6)])
 
     def __repr__(self) -> str:
         return f"<AsyncConnection(host={self.host}, port={self.port}, buffer_size={self.buffer_size})>"
+
+    @property
+    def id(self) -> str:
+        """Unique identifier for the connection."""
+        return f"#{self._id}-{self.port}"
 
     @property
     def protocol(self) -> ProtocolT:
@@ -130,25 +140,23 @@ class AsyncConnection(Connection, Generic[ProtocolT]):
 
     async def connect(self) -> None:
         """Coroutine to establish a connection with the server asynchronously."""
-        logger.debug(f"Connecting to {self.host}:{self.port}...")
+        logger.debug(f"{self.id} -> Connecting to {self.host}:{self.port}")
 
         for attempt, timeout in enumerate(self._backoff):
             try:
                 self._reader, self._writer = await self.open_connection(
                     host=self.host, port=self.port
                 )
-                logger.info("Connected to the server.")
+                logger.info(f"{self.id} -> Connected to the server.")
                 self._connected = True
                 break
             except Exception as exception:
-                if attempt + 1 >= self.connection_attempts:
-                    break
-
                 logger.exception(exception)
-                if not self.reconnect:
+
+                if attempt + 1 >= self.connection_attempts or not self.reconnect:
                     break
 
-                logger.warning("Connecting to the server failed. Retrying...")
+                logger.warning(f"{self.id} -> Connecting to the server failed. Retrying...")
                 await asyncio.sleep(timeout)
 
     async def open_connection(
@@ -166,7 +174,7 @@ class AsyncConnection(Connection, Generic[ProtocolT]):
         **kwargs:
             Additional keyword arguments to pass to the connection setup.
         """
-        logger.debug("Creating a new connection...")
+        logger.debug(f"{self.id} -> Creating a new connection...")
         reader: asyncio.StreamReader = asyncio.StreamReader(loop=self.loop)
         self._protocol = self.protocol_type(stream_reader=reader, loop=self.loop)
 
@@ -176,12 +184,12 @@ class AsyncConnection(Connection, Generic[ProtocolT]):
         writer: asyncio.StreamWriter = asyncio.StreamWriter(
             transport=transport, protocol=self._protocol, reader=reader, loop=self.loop
         )
-        logger.debug("Created a new connection.")
+        logger.debug(f"{self.id} -> Created a new connection.")
         return reader, writer
 
     async def try_reconnect(self) -> Result[bytes]:
         """A method to attempt to reconnect to the server if the connection is broken."""
-        logger.debug("Attempting to reconnect to the server...")
+        logger.debug(f"{self.id} -> Attempting to reconnect to the server...")
 
         # Without this, it somehow manages to establish a non-working connection.
         await asyncio.sleep(1)
@@ -207,7 +215,7 @@ class AsyncConnection(Connection, Generic[ProtocolT]):
         """
         if self._writer is None:
             logger.error(
-                "Missing StreamWriter object! Did you forget to connect? Aborting the send method..."
+                f"{self.id} -> Missing StreamWriter object! Did you forget to connect? Aborting the send method..."
             )
             return Result.fail(Errors.ConnectionClosed.value)
 
@@ -218,11 +226,11 @@ class AsyncConnection(Connection, Generic[ProtocolT]):
 
         async with self._lock:
             try:
-                logger.debug("Sending data -> %s.", data)
+                logger.debug(f"{self.id} -> Sending data: %s.", data)
                 self._writer.write(data)
                 await self._writer.drain()
             except (ConnectionError, OSError):
-                logger.debug("The connection has been terminated.")
+                logger.debug(f"{self.id} -> The connection has been terminated.")
                 if not self.reconnect:
                     return Result.fail(Errors.ConnectionClosed.value)
 
@@ -251,7 +259,7 @@ class AsyncConnection(Connection, Generic[ProtocolT]):
         """
         if self._reader is None:
             return logger.error(
-                "Missing StreamReader object! Did you forget to connect? Aborting the receive method..."
+                f"{self.id} -> Missing StreamReader object! Did you forget to connect? Aborting the receive method..."
             )
 
         if timeout_limit is None:
@@ -263,7 +271,7 @@ class AsyncConnection(Connection, Generic[ProtocolT]):
                 self._reader.read(self.buffer_size), timeout=timeout_limit
             )
 
-        logger.debug("Received data -> %s.", data)
+        logger.debug(f"{self.id} -> Received data: %s.", data)
         return data
 
     async def wait_for_response(self) -> Result:
@@ -276,13 +284,9 @@ class AsyncConnection(Connection, Generic[ProtocolT]):
             return Result.fail(Errors.ConnectionClosed.value)
 
         complete_data: bytes = bytes()
-        if len(complete_data) == 0:
-            # When socket lose connection to the server it receives empty bytes.
-            return Result.fail(Errors.ConnectionClosed.value)
 
         while not complete_data.endswith(b"\x04"):
-            logger.debug("Received incomplete data. Awaiting for the rest.")
-
+            logger.debug(f"{self.id} -> Received incomplete data. Awaiting for the rest.")
             try:
                 data: bytes = await self.receive(timeout_limit=self.timeout_limit)
             except asyncio.TimeoutError:

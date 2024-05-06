@@ -16,4 +16,3 @@ if not client.is_alive():
 threads = [threading.Thread(target=worker, args=(1, client)) for _ in range(5)]
 for thread in threads:
     thread.start()
-

@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Any, Type
+from typing import Any, Type, Generic, TypeVar
 
 import asyncio
 import logging as logger
@@ -11,8 +11,10 @@ from ..connection import Connection
 from ..result import Result
 from ..enums import Errors
 
+ProtocolT = TypeVar('ProtocolT', bound=asyncio.StreamReaderProtocol)
 
-class AsyncConnection(Connection):
+
+class AsyncConnection(Connection, Generic[ProtocolT]):
     """
     An asynchronous connection object to manage communication with the server.
 
@@ -73,7 +75,7 @@ class AsyncConnection(Connection):
         timeout_limit: int = 15,
         buffer_size: int = 2048,
         loop: asyncio.AbstractEventLoop | None = None,
-        protocol_type: Type[asyncio.StreamReaderProtocol] | None = None,
+        protocol_type: Type[ProtocolT] | None = None,
     ) -> None:
         super().__init__(
             host=host,
@@ -85,10 +87,10 @@ class AsyncConnection(Connection):
         )
         self.loop: asyncio.AbstractEventLoop = loop or asyncio.get_event_loop()
 
-        self._protocol_type: Type[asyncio.StreamReaderProtocol] = (  # pyright: ignore
+        self._protocol_type: Type[ProtocolT] = (  # pyright: ignore
             protocol_type or asyncio.StreamReaderProtocol
         )
-        self._protocol: asyncio.StreamReaderProtocol | None = None
+        self._protocol: ProtocolT | None = None
 
         self._reader: asyncio.StreamReader | None = None
         self._writer: asyncio.StreamWriter | None = None
@@ -106,12 +108,12 @@ class AsyncConnection(Connection):
         return f"#{self._id}-{self.port}"
 
     @property
-    def protocol(self) -> asyncio.StreamReaderProtocol | None:
+    def protocol(self) -> ProtocolT | None:
         """The protocol for managing the connection. If available."""
         return self._protocol
 
     @property
-    def protocol_type(self) -> Type[asyncio.StreamReaderProtocol]:
+    def protocol_type(self) -> Type[ProtocolT]:
         """The type of protocol used for managing the connection."""
         return self._protocol_type
 
@@ -135,6 +137,11 @@ class AsyncConnection(Connection):
     def pending_requests(self) -> int:
         """The number of pending requests."""
         return self._pending_requests
+
+    @property
+    def is_locked(self) -> bool:
+        """Whether the connection is locked."""
+        return self._lock.locked()
 
     async def connect(self) -> None:
         """Coroutine to establish a connection with the server asynchronously."""
@@ -175,10 +182,10 @@ class AsyncConnection(Connection):
         """
         logger.debug(f"{self.id} -> Creating a new connection...")
         reader: asyncio.StreamReader = asyncio.StreamReader(loop=self.loop)
-        self._protocol = self.protocol_type(stream_reader=reader, loop=self.loop)
+        protocol = self.protocol_type(stream_reader=reader, loop=self.loop)
 
         transport, _ = await self.loop.create_connection(
-            protocol_factory=lambda: self._protocol,  # pyright: ignore
+            protocol_factory=lambda: protocol,  # pyright: ignore
             host=host,
             port=port,
             **kwargs,
@@ -186,6 +193,7 @@ class AsyncConnection(Connection):
         writer: asyncio.StreamWriter = asyncio.StreamWriter(
             transport=transport, protocol=self._protocol, reader=reader, loop=self.loop
         )
+        self._protocol = protocol
         logger.debug(f"{self.id} -> Created a new connection.")
         return reader, writer
 
@@ -299,8 +307,7 @@ class AsyncConnection(Connection):
             try:
                 data = await self.receive(timeout_limit=0.1)
             except asyncio.TimeoutError:
-                break
-
+                break  # Transfer complete.
             if data is None or len(data) == 0:
                 # When socket lose connection to the server it receives empty bytes.
                 self._connected = False

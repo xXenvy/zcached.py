@@ -74,7 +74,7 @@ class AsyncConnection(Connection, Generic[ProtocolT]):
         reconnect: bool,
         timeout_limit: int,
         buffer_size: int,
-        loop: asyncio.AbstractEventLoop = None,
+        loop: asyncio.AbstractEventLoop | None = None,
         protocol_type: Type[ProtocolT] | None = None,
     ) -> None:
         super().__init__(
@@ -87,7 +87,7 @@ class AsyncConnection(Connection, Generic[ProtocolT]):
         )
         self.loop: asyncio.AbstractEventLoop = loop or asyncio.get_event_loop()
 
-        self._protocol_type: Type[ProtocolT] = (
+        self._protocol_type: Type[ProtocolT] = (  # pyright: ignore
             protocol_type or asyncio.StreamReaderProtocol
         )
         self._protocol: ProtocolT | None = None
@@ -108,8 +108,8 @@ class AsyncConnection(Connection, Generic[ProtocolT]):
         return f"#{self._id}-{self.port}"
 
     @property
-    def protocol(self) -> ProtocolT:
-        """The protocol for managing the connection."""
+    def protocol(self) -> ProtocolT | None:
+        """The protocol for managing the connection. If available."""
         return self._protocol
 
     @property
@@ -118,13 +118,13 @@ class AsyncConnection(Connection, Generic[ProtocolT]):
         return self._protocol_type
 
     @property
-    def reader(self) -> asyncio.StreamReader:
-        """The asyncio.StreamReader object for reading data from the server."""
+    def reader(self) -> asyncio.StreamReader | None:
+        """The asyncio.StreamReader object for reading data from the server. If available."""
         return self._reader
 
     @property
-    def writer(self) -> asyncio.StreamWriter:
-        """The asyncio.StreamWriter object for writing data to the server."""
+    def writer(self) -> asyncio.StreamWriter | None:
+        """The asyncio.StreamWriter object for writing data to the server. If available."""
         return self._writer
 
     @property
@@ -179,7 +179,7 @@ class AsyncConnection(Connection, Generic[ProtocolT]):
         self._protocol = self.protocol_type(stream_reader=reader, loop=self.loop)
 
         transport, _ = await self.loop.create_connection(
-            protocol_factory=lambda: self._protocol, host=host, port=port, **kwargs
+            protocol_factory=lambda: self._protocol, host=host, port=port, **kwargs  # pyright: ignore
         )
         writer: asyncio.StreamWriter = asyncio.StreamWriter(
             transport=transport, protocol=self._protocol, reader=reader, loop=self.loop
@@ -287,10 +287,14 @@ class AsyncConnection(Connection, Generic[ProtocolT]):
 
         while not complete_data.endswith(b"\x04"):
             logger.debug(f"{self.id} -> Received incomplete data. Awaiting for the rest.")
+
             try:
-                data: bytes = await self.receive(timeout_limit=self.timeout_limit)
+                data: bytes | None = await self.receive(timeout_limit=self.timeout_limit)
             except asyncio.TimeoutError:
                 return Result.fail(Errors.TimeoutLimit.value)
+
+            if data is None:
+                return Result.fail(Errors.ConnectionClosed.value)
 
             if len(data) == 0:
                 # When socket lose connection to the server it receives empty bytes.

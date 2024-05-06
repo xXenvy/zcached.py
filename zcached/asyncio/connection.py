@@ -63,7 +63,7 @@ class AsyncConnection(Connection, Generic[ProtocolT]):
         "_writer",
         "_protocol",
         "_pending_requests",
-        "_id"
+        "_id",
     )
 
     def __init__(
@@ -156,7 +156,9 @@ class AsyncConnection(Connection, Generic[ProtocolT]):
                 if attempt + 1 >= self.connection_attempts or not self.reconnect:
                     break
 
-                logger.warning(f"{self.id} -> Connecting to the server failed. Retrying...")
+                logger.warning(
+                    f"{self.id} -> Connecting to the server failed. Retrying..."
+                )
                 await asyncio.sleep(timeout)
 
     async def open_connection(
@@ -179,7 +181,10 @@ class AsyncConnection(Connection, Generic[ProtocolT]):
         self._protocol = self.protocol_type(stream_reader=reader, loop=self.loop)
 
         transport, _ = await self.loop.create_connection(
-            protocol_factory=lambda: self._protocol, host=host, port=port, **kwargs  # pyright: ignore
+            protocol_factory=lambda: self._protocol,
+            host=host,
+            port=port,
+            **kwargs,  # pyright: ignore
         )
         writer: asyncio.StreamWriter = asyncio.StreamWriter(
             transport=transport, protocol=self._protocol, reader=reader, loop=self.loop
@@ -286,10 +291,14 @@ class AsyncConnection(Connection, Generic[ProtocolT]):
         complete_data: bytes = bytes()
 
         while not complete_data.endswith(b"\x04"):
-            logger.debug(f"{self.id} -> Received incomplete data. Awaiting for the rest.")
+            logger.debug(
+                f"{self.id} -> Received incomplete data. Awaiting for the rest."
+            )
 
             try:
-                data: bytes | None = await self.receive(timeout_limit=self.timeout_limit)
+                data: bytes | None = await self.receive(
+                    timeout_limit=self.timeout_limit
+                )
             except asyncio.TimeoutError:
                 return Result.fail(Errors.TimeoutLimit.value)
 

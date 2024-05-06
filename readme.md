@@ -14,7 +14,7 @@ For more information, please see [zcached repository](https://github.com/sectasy
 - **Simplified Caching:** Zcached.py simplifies the process of caching data by providing intuitive functions for storing and retrieving values.
 - **Efficient Communication:** The library optimizes communication with the zcached server, ensuring minimal overhead and efficient data transfer.
 - **Properly Typehinted:** The codebase of zcached.py is properly typehinted, enhancing code readability.
-- **Support for Asynchronous Operations:** Zcached.py supports async operations, allowing for concurrent execution of database operations.
+- **Support for Async Operations:** Zcached.py supports async operations, allowing for concurrent execution of database operations.
 - **Thread Safety:** The library is thread-safe, enabling safe access to the data in multi-threaded environments.
 
 ## `🔧` Installation

@@ -202,6 +202,9 @@ class ConnectionPool:
             return
 
         self._pool_size -= amount
+        if 0 > self._pool_size:
+            self._pool_size = 0
+
         if self._pool_size >= len(self.connections):
             return
 
@@ -218,7 +221,7 @@ class ConnectionPool:
             try:
                 connection: AsyncConnection = self.get_least_loaded_connection()
             except IndexError:
-                continue
+                break  # There are no other connections.
 
             if connection.pending_requests == 0 or delete_pending_connections:
                 self._connections.remove(connection)

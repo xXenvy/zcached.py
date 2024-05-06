@@ -27,18 +27,18 @@ class AsyncZCached:
     port:
         Server port number.
     pool_size:
-        Number of connections to be created in the connection pool (default is 1).
+        Number of connections to be created in the connection pool.
     connection_attempts:
-        The maximum number of attempts to establish a connection with the server (default is 3).
+        The maximum number of attempts to establish a connection with the server.
     reconnect:
         Flag indicating whether automatic reconnection attempt should be made
         in case of a broken connection (default is True).
     timeout_limit:
-        The maximum time in seconds to wait for a response from the server (default is 10).
+        The maximum time in seconds to wait for a response from the server.
     buffer_size:
-        The size of the buffer for receiving data from the server, in bytes (default is 1024).
+        The size of the buffer for receiving data from the server, in bytes.
     loop:
-        The event loop to be used (default is None, which means using the current event loop).
+        The event loop to be used.
     protocol_type:
         The protocol type which is used to building protocol for managing the connection.
 
@@ -163,7 +163,7 @@ class AsyncZCached:
 
         .. note::
             For every key that does not hold a string value or does not exist,
-            the special value null is returned. Because of this, the operation never fails.
+            the special value None is returned. Because of this, the operation never fails.
 
         Parameters
         ----------

@@ -150,7 +150,6 @@ class AsyncConnection(Connection):
                 break
             except Exception as exception:
                 logger.exception(exception)
-
                 if attempt + 1 >= self.connection_attempts or not self.reconnect:
                     break
 
@@ -163,7 +162,7 @@ class AsyncConnection(Connection):
         self, host: str, port: int, **kwargs: Any
     ) -> tuple[asyncio.StreamReader, asyncio.StreamWriter]:
         """
-        Coroutine to open a new connection to the server.
+        Coroutine to open a  connection to the server.
 
         Parameters
         ----------
@@ -255,6 +254,7 @@ class AsyncConnection(Connection):
         ----------
         timeout_limit:
             The maximum time in seconds to wait for a response from the server.
+
         Raises
         ------
         asyncio.TimeoutError
@@ -264,7 +264,6 @@ class AsyncConnection(Connection):
             return logger.error(
                 f"{self.id} -> Missing StreamReader object! Did you forget to connect? Aborting the receive method..."
             )
-
         if timeout_limit is None:
             # If there is no specified time limit, and if there is no data to receive,
             # the reader will wait for it as long as needed.
@@ -273,7 +272,6 @@ class AsyncConnection(Connection):
             data: bytes = await asyncio.wait_for(
                 self._reader.read(self.buffer_size), timeout=timeout_limit
             )
-
         logger.debug(f"{self.id} -> Received data: %s.", data)
         return data
 
@@ -283,7 +281,7 @@ class AsyncConnection(Connection):
 
         NOT TASK SAFE.
         """
-        if not self.is_connected or not self._reader:
+        if not self._reader:
             return Result.fail(Errors.ConnectionClosed.value)
 
         complete_data: bytes = bytes()
@@ -292,7 +290,6 @@ class AsyncConnection(Connection):
             logger.debug(
                 f"{self.id} -> Received incomplete data. Awaiting for the rest."
             )
-
             try:
                 data: bytes | None = await self.receive(
                     timeout_limit=self.timeout_limit
@@ -300,10 +297,8 @@ class AsyncConnection(Connection):
             except asyncio.TimeoutError:
                 return Result.fail(Errors.TimeoutLimit.value)
 
-            if data is None:
-                return Result.fail(Errors.ConnectionClosed.value)
-
-            if len(data) == 0:
+            if data is None or len(data) == 0:
+                self._connected = False
                 # When socket lose connection to the server it receives empty bytes.
                 return Result.fail(Errors.ConnectionClosed.value)
 

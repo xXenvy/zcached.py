@@ -191,7 +191,7 @@ class AsyncConnection(Connection, Generic[ProtocolT]):
             **kwargs,
         )
         writer: asyncio.StreamWriter = asyncio.StreamWriter(
-            transport=transport, protocol=self._protocol, reader=reader, loop=self.loop
+            transport=transport, protocol=protocol, reader=reader, loop=self.loop
         )
         self._protocol = protocol
         logger.debug(f"{self.id} -> Created a new connection.")

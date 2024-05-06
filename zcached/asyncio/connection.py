@@ -284,14 +284,20 @@ class AsyncConnection(Connection):
         if not self._reader:
             return Result.fail(Errors.ConnectionClosed.value)
 
+        complete_data: bytes = bytes()
         try:
-            complete_data: bytes = await self.receive(timeout_limit=self.timeout_limit)
+            data: bytes | None = await self.receive(timeout_limit=self.timeout_limit)
+            if data is None:
+                self._connected = False
+                return Result.fail(Errors.ConnectionClosed.value)
         except asyncio.TimeoutError:
             return Result.fail(Errors.TimeoutLimit.value)
 
+        complete_data += data
+
         while True:
             try:
-                data: bytes | None = await self.receive(timeout_limit=0.1)
+                data = await self.receive(timeout_limit=0.1)
             except asyncio.TimeoutError:
                 break
 

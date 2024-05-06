@@ -181,10 +181,10 @@ class AsyncConnection(Connection, Generic[ProtocolT]):
         self._protocol = self.protocol_type(stream_reader=reader, loop=self.loop)
 
         transport, _ = await self.loop.create_connection(
-            protocol_factory=lambda: self._protocol,
+            protocol_factory=lambda: self._protocol,  # pyright: ignore
             host=host,
             port=port,
-            **kwargs,  # pyright: ignore
+            **kwargs,
         )
         writer: asyncio.StreamWriter = asyncio.StreamWriter(
             transport=transport, protocol=self._protocol, reader=reader, loop=self.loop

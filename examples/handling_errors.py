@@ -1,4 +1,3 @@
-from typing import Union
 from zcached import ZCached, Result, Errors
 
 client = ZCached(host="localhost", port=1234)

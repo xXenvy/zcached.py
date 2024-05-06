@@ -13,6 +13,6 @@ client.run()
 if not client.is_alive():
     raise RuntimeError("Something went wrong :(")
 
-threads = [threading.Thread(target=worker, args=(1, client)) for _ in range(5)]
+threads = [threading.Thread(target=worker, args=(x, client)) for x in range(5)]
 for thread in threads:
     thread.start()

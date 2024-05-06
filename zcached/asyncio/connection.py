@@ -291,9 +291,7 @@ class AsyncConnection(Connection):
 
         while True:
             try:
-                data: bytes | None = await self.receive(
-                    timeout_limit=0.1
-                )
+                data: bytes | None = await self.receive(timeout_limit=0.1)
             except asyncio.TimeoutError:
                 break
 

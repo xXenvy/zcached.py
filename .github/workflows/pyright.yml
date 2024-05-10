@@ -2,6 +2,7 @@ name: Pyright
 
 on: [push]
 
+
 jobs:
   pyright:
     runs-on: ubuntu-latest

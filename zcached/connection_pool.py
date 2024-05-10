@@ -255,7 +255,18 @@ class ConnectionPool:
     def run_in_thread(
         func: Callable[Param, Any], *args: Param.args, **kwargs: Param.kwargs
     ) -> Thread:
-        """Method to run function in thread."""
+        """
+        Method to run function in thread.
+
+        Parameters
+        ----------
+        func:
+            A function to run in the thread.
+        args:
+            Function args.
+        kwargs:
+            Function kwargs.
+        """
         thread: Thread = Thread(target=func, args=args, kwargs=kwargs)
         thread.start()
         return thread

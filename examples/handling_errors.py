@@ -7,6 +7,10 @@ client.run()
 def handle_error(error_message: str) -> None:
     if error_message == Errors.ConnectionReestablished:
         return  # The connection was dropped, but managed to restore it.
+    if error_message == Errors.NoAvailableConnections:
+        connections: int = client.connection_pool.reconnect()
+        if connections >= 1:  # It was able to connect the broken connections.
+            return
     raise RuntimeError(error_message)
 
 

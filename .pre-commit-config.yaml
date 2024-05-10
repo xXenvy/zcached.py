@@ -1,3 +1,5 @@
+exclude: 'dev-requirements.txt'
+
 ci:
   autofix_commit_msg: |
     style: auto fixes from pre-commit hooks

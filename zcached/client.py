@@ -38,6 +38,8 @@ class ZCached:
         in case of a broken connection.
     timeout_limit:
         The maximum time in seconds to wait for a response from the server.
+    kwargs:
+        Optional keyword arguments.
 
     Attributes
     ----------

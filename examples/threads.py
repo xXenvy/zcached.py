@@ -20,4 +20,4 @@ for thread in threads:
 
 # There is also a second, easier way. However, this one has limitations.
 for w_id in range(10):
-    client.connection_pool.run_in_thread(worker, w_id, client)
+    client.connection_pool.run_in_thread(func=worker, worker_id=w_id, zcached=client)

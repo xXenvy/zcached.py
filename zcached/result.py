@@ -12,7 +12,7 @@ class Result(Generic[T]):
 
     Parameters
     ----------
-    value:
+    raw_value:
         A raw value to deserialize.
     error:
         Error message detailing why the operation failed.
@@ -29,12 +29,12 @@ class Result(Generic[T]):
     __slots__ = ("value", "error")
     _deserializer: ClassVar[Deserializer] = Deserializer()
 
-    def __init__(self, value: bytes, error: str | None = None):
+    def __init__(self, raw_value: bytes, error: str | None = None):
         if error is not None:
             # If we have an error, the value will be empty, so there is no point in deserializing it.
-            self.value: T = value  # type: ignore
+            self.value: T = raw_value  # type: ignore
         else:
-            self.value: T = self._deserializer.process(Reader(value))
+            self.value: T = self._deserializer.process(Reader(raw_value))
 
         self.error: str | None = error
 
@@ -66,12 +66,12 @@ class Result(Generic[T]):
     @classmethod
     def fail(cls, error: str):
         """Create a Result object for a failed operation."""
-        return cls(value=bytes(), error=error)
+        return cls(raw_value=bytes(), error=error)
 
     @classmethod
-    def ok(cls, value: bytes):
+    def ok(cls, raw_value: bytes):
         """Create a Result object for a successful operation."""
-        return cls(value=value)
+        return cls(raw_value=raw_value)
 
     def is_empty(self) -> bool:
         """Checks if the value is empty."""

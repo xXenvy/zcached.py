@@ -33,6 +33,9 @@ class Errors(str, Enum):
         """Generates an error message for an unknown command."""
         return f"ERR unknown command '{name}'"
 
+    def __repr__(self) -> str:
+        return self.value
+
 
 class Commands(bytes, Enum):
     PING = b"*1\r\n$4\r\nPING\r\n"
@@ -75,3 +78,6 @@ class Commands(bytes, Enum):
     @staticmethod
     def delete(key: str) -> bytes:
         return f"*2\r\n$6\r\nDELETE\r\n${len(key)}\r\n{key}\r\n".encode()
+
+    def __repr__(self) -> str:
+        return f"{self.value}"

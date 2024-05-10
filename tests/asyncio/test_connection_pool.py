@@ -6,7 +6,7 @@ from zcached.asyncio import AsyncConnectionPool, AsyncConnection
 @pytest.mark.asyncio
 async def test_connection_pool():
     pool: AsyncConnectionPool = AsyncConnectionPool(
-        pool_size=3,
+        pool_size=2,
         connection_factory=lambda: AsyncConnection(
             host="127.0.0.1",
             port=1234,
@@ -17,7 +17,7 @@ async def test_connection_pool():
         ),
     )
     assert (len(pool.connections), len(pool.connected_connections)) == (0, 0)
-    assert pool.pool_size == 3
+    assert pool.pool_size == 2
     assert not pool.is_working() and not pool.is_full() and pool.is_empty()
 
     await pool.close()
@@ -25,9 +25,9 @@ async def test_connection_pool():
     assert isinstance(pool.connection_factory(), AsyncConnection)
 
     await pool.setup()
-    assert (len(pool.connections), len(pool.connected_connections)) == (3, 0)
+    assert (len(pool.connections), len(pool.connected_connections)) == (2, 0)
 
-    pool.reduce_pool_connections(2)
+    pool.reduce_pool_connections(1)
     assert pool.pool_size == 1
     assert (len(pool.connections), len(pool.broken_connections)) == (1, 1)
 

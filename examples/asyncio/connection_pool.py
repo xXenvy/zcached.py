@@ -1,12 +1,12 @@
 import asyncio
 import typing
 
-from zcached.asyncio import AsyncZCached, ConnectionPool, AsyncConnection
+from zcached.asyncio import AsyncZCached, AsyncConnectionPool, AsyncConnection
 from zcached import Result
 
 
 async def main():
-    connection_pool = ConnectionPool(
+    connection_pool = AsyncConnectionPool(
         # Connections in the pool. If we do not send a large number of requests, we can use only one.
         pool_size=1,
         # Some function that does not take any arguments, but returns the created connection.

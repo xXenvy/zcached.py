@@ -6,7 +6,7 @@ from asyncio import StreamReaderProtocol
 
 
 @pytest.mark.asyncio
-async def test_connnection():
+async def test_connection():
 
     class MyProtocol(StreamReaderProtocol):
         @staticmethod
@@ -41,4 +41,4 @@ async def test_connnection():
     assert (await connection.send(b"DOG")).error == Errors.ConnectionClosed
     assert (await connection.wait_for_response()).error == Errors.ConnectionClosed
     assert await connection.receive(0) is None
-    assert connection.is_locked is False
+    assert connection.is_locked() is False

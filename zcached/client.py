@@ -1,13 +1,14 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Any, ClassVar, List
 
-from .protocol import Serializer, SupportedTypes
+from .connection_pool import ConnectionPool
 from .connection import Connection
-from .enums import Commands
+
+from .protocol import Serializer, SupportedTypes
+from .enums import Commands, Errors
+from .result import Result
 
 if TYPE_CHECKING:
-    from .result import Result
-
     from typing_extensions import Self
 
 
@@ -21,6 +22,8 @@ class ZCached:
         Server host address.
     port:
         Server port number.
+    pool_size:
+        Number of connections to be created in the connection pool.
     buffer_size:
         The size of the buffer for receiving data from the server, in bytes.
         Larger values for buff_size may allow for more data to be received in a single operation,
@@ -34,71 +37,95 @@ class ZCached:
     timeout_limit:
         The maximum time in seconds to wait for a response from the server.
 
-    Notes
-    -----
-    There is a way to do a reconnect manually, using the ``ZCached.connection.try_reconnect()`` method.
-
     Attributes
     ----------
-    connection:
-        Connection object used by this class.
+    connection_pool:
+        The connection pool used by the client to manage connections to the server.
     """
 
-    __slots__ = ("connection",)
+    __slots__ = ("connection_pool",)
     _serializer: ClassVar[Serializer] = Serializer()
 
     def __init__(
         self,
         host: str,
         port: int = 7556,
+        pool_size: int = 1,
         buffer_size: int = 2048,
         connection_attempts: int = 3,
         reconnect: bool = True,
         timeout_limit: int = 10,
-        **kwargs: Any,
+        **kwargs: ConnectionPool,  # Currently only connection pool is available
     ) -> None:
-        if connection := kwargs.get("connection"):
-            self.connection: Connection = connection
+        if pool := kwargs.get("connection_pool"):
+            self.connection_pool: ConnectionPool = pool
         else:
-            self.connection: Connection = Connection(
-                host=host,
-                port=port,
-                buffer_size=buffer_size,
-                connection_attempts=connection_attempts,
-                reconnect=reconnect,
-                timeout_limit=timeout_limit,
+            self.connection_pool: ConnectionPool = ConnectionPool(
+                pool_size=pool_size,
+                connection_factory=lambda: Connection(
+                    host=host,
+                    port=port,
+                    connection_attempts=connection_attempts,
+                    reconnect=reconnect,
+                    timeout_limit=timeout_limit,
+                    buffer_size=buffer_size,
+                )
             )
 
     def __repr__(self) -> str:
-        return f"ZCached(connection={self.connection})"
+        return f"ZCached(connection_pool={self.connection_pool})"
 
     def run(self) -> None:
-        """Establishes a connection with the database server."""
-        self.connection.connect()
+        """Establishes connections with the database server."""
+        self.connection_pool.setup()
 
     def ping(self) -> Result[str]:
         """Send a ping command to the database."""
-        return self.connection.send(Commands.PING.value)
+        connection: Connection | None = self.get_connection()
+        if not connection:
+            return Result.fail(Errors.NoAvailableConnections.value)
+
+        return connection.send(Commands.PING.value)
 
     def flush(self) -> Result[str]:
         """Method to flush all database records."""
-        return self.connection.send(Commands.FLUSH.value)
+        connection: Connection | None = self.get_connection()
+        if not connection:
+            return Result.fail(Errors.NoAvailableConnections.value)
+
+        return connection.send(Commands.FLUSH.value)
 
     def dbsize(self) -> Result[int]:
         """Retrieve the size of the database."""
-        return self.connection.send(Commands.DB_SIZE.value)
+        connection: Connection | None = self.get_connection()
+        if not connection:
+            return Result.fail(Errors.NoAvailableConnections.value)
+
+        return connection.send(Commands.DB_SIZE.value)
 
     def save(self) -> Result[str]:
         """Method to save all database records."""
-        return self.connection.send(Commands.SAVE.value)
+        connection: Connection | None = self.get_connection()
+        if not connection:
+            return Result.fail(Errors.NoAvailableConnections.value)
+
+        return connection.send(Commands.SAVE.value)
 
     def keys(self) -> Result[List[str]]:
         """Retrieve the keys of the database."""
-        return self.connection.send(Commands.KEYS.value)
+        connection: Connection | None = self.get_connection()
+        if not connection:
+            return Result.fail(Errors.NoAvailableConnections.value)
+
+        return connection.send(Commands.KEYS.value)
 
     def lastsave(self) -> Result[int]:
         """Method to retrieve the Unix timestamp of the last successful database save."""
-        return self.connection.send(Commands.LAST_SAVE.value)
+        connection: Connection | None = self.get_connection()
+        if not connection:
+            return Result.fail(Errors.NoAvailableConnections.value)
+
+        return connection.send(Commands.LAST_SAVE.value)
 
     def get(self, key: str) -> Result:
         """
@@ -109,7 +136,11 @@ class ZCached:
         key:
             The key to retrieve the value from the database.
         """
-        return self.connection.send(Commands.get(key))
+        connection: Connection | None = self.get_connection()
+        if not connection:
+            return Result.fail(Errors.NoAvailableConnections.value)
+
+        return connection.send(Commands.get(key))
 
     def mget(self, *keys: str) -> Result[dict[str, Any]]:
         """
@@ -127,7 +158,11 @@ class ZCached:
         keys:
             Keys to retrieve values from the database.
         """
-        return self.connection.send(Commands.mget(*keys))
+        connection: Connection | None = self.get_connection()
+        if not connection:
+            return Result.fail(Errors.NoAvailableConnections.value)
+
+        return connection.send(Commands.mget(*keys))
 
     def set(self, key: str, value: SupportedTypes) -> Result[str]:
         """
@@ -140,7 +175,11 @@ class ZCached:
         value:
             The value of the record.
         """
-        return self.connection.send(Commands.set(key, value))
+        connection: Connection | None = self.get_connection()
+        if not connection:
+            return Result.fail(Errors.NoAvailableConnections.value)
+
+        return connection.send(Commands.set(key, value))
 
     def mset(self, **params: SupportedTypes) -> Result[str]:
         """
@@ -153,7 +192,11 @@ class ZCached:
         params:
             Keyword arguments representing key-value pairs to be set in the database.
         """
-        return self.connection.send(Commands.mset(**params))
+        connection: Connection | None = self.get_connection()
+        if not connection:
+            return Result.fail(Errors.NoAvailableConnections.value)
+
+        return connection.send(Commands.mset(**params))
 
     def delete(self, key: str) -> Result[str]:
         """
@@ -164,7 +207,11 @@ class ZCached:
         key:
             Key of the record being deleted.
         """
-        return self.connection.send(Commands.delete(key))
+        connection: Connection | None = self.get_connection()
+        if not connection:
+            return Result.fail(Errors.NoAvailableConnections.value)
+
+        return connection.send(Commands.delete(key))
 
     def exists(self, key: str) -> bool:
         """
@@ -192,14 +239,28 @@ class ZCached:
         """
         return bool(self.ping())
 
-    @classmethod
-    def from_connection(cls, connection: Connection) -> Self:
+    def get_connection(self) -> Connection | None:
         """
-        A classmethod to create client from existing connection.
+        Retrieves the least loaded connection from the connection pool.
+        None if there is no any running connections.
+        """
+        try:
+            return self.connection_pool.get_least_loaded_connection()
+        except IndexError:
+            return None
+
+    @classmethod
+    def from_connection_pool(cls, connection_pool: ConnectionPool) -> Self:
+        """
+        Creates a client instance from an existing connection pool.
 
         Parameters
         ----------
-        connection:
-            Created connection object.
+        connection_pool:
+            The connection pool to be used by the client.
         """
-        return cls(host=connection.host, connection=connection)
+        return cls(
+            host="",
+            port=0,  # This is needed to create a pool. We already have one, so this is unnecessary.
+            connection_pool=connection_pool,
+        )

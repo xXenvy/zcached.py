@@ -1,24 +1,26 @@
 from __future__ import annotations
 
+from threading import Thread
 import logging as logger
 
-from typing import Callable, List, Iterable, TYPE_CHECKING
-from asyncio import Task, gather
+from typing import TYPE_CHECKING, List, Callable, Iterable, ParamSpec, Any
 
 if TYPE_CHECKING:
-    from .connection import AsyncConnection
+    from .connection import Connection
+
+Param = ParamSpec("Param")
 
 
-class AsyncConnectionPool:
+class ConnectionPool:
     """
-    A pool of asynchronous connections.
+    A pool of connections.
 
     Parameters
     ----------
     pool_size:
         The maximum size of the connection pool.
     connection_factory:
-        A callable that returns a new instance of AsyncConnection.
+        A callable that returns a new instance of Connection.
     """
 
     __slots__ = ("_pool_size", "_connection_factory", "_connections")
@@ -26,29 +28,29 @@ class AsyncConnectionPool:
     def __init__(
         self,
         pool_size: int,
-        connection_factory: Callable[[], AsyncConnection],
+        connection_factory: Callable[[], Connection],
     ):
         self._pool_size: int = pool_size
-        self._connection_factory: Callable[[], AsyncConnection] = connection_factory
-        self._connections: List[AsyncConnection] = []
+        self._connection_factory: Callable[[], Connection] = connection_factory
+        self._connections: List[Connection] = []
 
         logger.info(f"Initiated a new connection pool. Pool size: {self._pool_size}.")
 
     def __repr__(self) -> str:
-        return f"<AsyncConnectionPool(size={self._pool_size}, connected_connections={len(self.connected_connections)})>"
+        return f"<ConnectionPool(size={self._pool_size}, connected_connections={len(self.connected_connections)})>"
 
     @property
-    def connections(self) -> List[AsyncConnection]:
+    def connections(self) -> List[Connection]:
         """List of all connections in the pool."""
         return self._connections
 
     @property
-    def connected_connections(self) -> List[AsyncConnection]:
+    def connected_connections(self) -> List[Connection]:
         """List of all connected connections in the pool."""
         return list(filter(lambda conn: conn.is_connected(), self._connections))
 
     @property
-    def broken_connections(self) -> List[AsyncConnection]:
+    def broken_connections(self) -> List[Connection]:
         """List of all broken (not connected) connections in the pool."""
         return list(filter(lambda conn: not conn.is_connected(), self._connections))
 
@@ -58,7 +60,7 @@ class AsyncConnectionPool:
         return self._pool_size
 
     @property
-    def connection_factory(self) -> Callable[[], AsyncConnection]:
+    def connection_factory(self) -> Callable[[], Connection]:
         """The factory function to create a new connection."""
         return self._connection_factory
 
@@ -74,35 +76,36 @@ class AsyncConnectionPool:
         """True if the pool is full."""
         return len(self.connections) == self._pool_size
 
-    async def setup(self) -> None:
+    def setup(self) -> None:
         """Creates connections in the pool and connects them."""
         self._connections.clear()
-        logger.info("Filling the connection pool")
+        logger.info("Filling the connection pool.")
 
-        tasks: List[Task] = []
+        threads: List[Thread] = []
 
         for _ in range(self._pool_size):
-            connection: AsyncConnection = self._connection_factory()
+            connection: Connection = self._connection_factory()
             self._connections.append(connection)
-            tasks.append(connection.loop.create_task(connection.connect()))
 
-        logger.debug("Running all connections in the pool")
-        await gather(*tasks)
+            thread: Thread = self.run_in_thread(func=connection.connect)
+            threads.append(thread)
 
-    async def close(self) -> None:
+        for t in threads:
+            # Waiting for all threads.
+            t.join()
+
+    def close(self) -> None:
         """Closes all connected connections in the pool."""
         logger.info(
-            "Closing: %s connnections in the pool", len(self.connected_connections)
+            "Closing: %s connections in the pool", len(self.connected_connections)
         )
-        await gather(
-            *(
-                conn.loop.create_task(conn.close())
-                for conn in self.connected_connections
-            )
-        )
+        for connection in self.connected_connections:
+            self.run_in_thread(func=connection.close)
+            # We don't care about result.
+
         self._connections.clear()
 
-    async def extend_pool_by_size(self, size: int) -> None:
+    def extend_pool_by_size(self, size: int) -> None:
         """
         Extends the pool by a specified number of connections.
         The pool size will be increased if necessary.
@@ -112,11 +115,9 @@ class AsyncConnectionPool:
         size:
             The number of connections to add to the pool.
         """
-        return await self.extend_pool_by_connections([self.connection_factory() for _ in range(size)])
+        return self.extend_pool_by_connections([self._connection_factory() for _ in range(size)])
 
-    async def extend_pool_by_connections(
-        self, connections: Iterable[AsyncConnection]
-    ) -> None:
+    def extend_pool_by_connections(self, connections: Iterable[Connection]) -> None:
         """
         Extends the pool with existing connections.
         The pool size will be increased if necessary.
@@ -126,17 +127,19 @@ class AsyncConnectionPool:
         connections:
             An iterable of existing connections to add to the pool.
         """
-        tasks: list[Task] = [conn.loop.create_task(conn.connect()) for conn in connections]
+        threads: list[Thread] = [self.run_in_thread(func=conn.connect) for conn in connections]
 
         self._connections.extend(connections)
         self._pool_size = len(self._connections)
 
-        await gather(*tasks)
+        for thread in threads:
+            thread.join()
+
         logger.debug(
             "Extended connection pool. New size: %s.", self._pool_size
         )
 
-    async def reconnect(self, only_broken_connections: bool = True) -> int:
+    def reconnect(self, only_broken_connections: bool = True) -> int:
         """
         Attempts to reconnect connections in the pool.
         Returns the number of connected connections after reconnection.
@@ -150,8 +153,11 @@ class AsyncConnectionPool:
             "Reconnecting connection pool. Only broken connections: %s.",
             only_broken_connections,
         )
-        connections: List[AsyncConnection] = self.broken_connections if only_broken_connections else self.connections
-        await gather(*(conn.loop.create_task(conn.try_reconnect()) for conn in connections))
+        connections: List[Connection] = self.broken_connections if only_broken_connections else self.connections
+        threads: List[Thread] = [self.run_in_thread(func=conn.try_reconnect) for conn in connections]
+
+        for thread in threads:
+            thread.join()
 
         return len(self.connected_connections)
 
@@ -193,13 +199,13 @@ class AsyncConnectionPool:
             self._connections.remove(broken_connection)
 
             # We don't care about this task, let's run this in background.
-            _ = broken_connection.loop.create_task(broken_connection.close())
+            self.run_in_thread(func=broken_connection.close)
             if self._pool_size >= len(self.connections):
                 return
 
         for _ in range(len(self.connected_connections)):
             try:
-                connection: AsyncConnection = self.get_least_loaded_connection()
+                connection: Connection = self.get_least_loaded_connection()
             except IndexError:
                 break  # There are no other connections.
 
@@ -207,7 +213,7 @@ class AsyncConnectionPool:
                 self._connections.remove(connection)
 
                 # We don't care about this task, let's run this in background.
-                _ = connection.loop.create_task(connection.close())
+                self.run_in_thread(func=connection.close)
 
                 if self._pool_size >= len(self.connections):
                     return
@@ -221,10 +227,10 @@ class AsyncConnectionPool:
             return
 
         for broken_connection in self.broken_connections:
-            _ = broken_connection.loop.create_task(broken_connection.close())
+            self.run_in_thread(func=broken_connection.close)
             self._connections.remove(broken_connection)
 
-    def get_least_loaded_connection(self) -> AsyncConnection:
+    def get_least_loaded_connection(self) -> Connection:
         """
         Get the least loaded connection from the pool.
         Only working connections are considered.
@@ -234,6 +240,13 @@ class AsyncConnectionPool:
         IndexError
             If the pool is empty.
         """
-        connections: List[AsyncConnection] = self.connected_connections
+        connections: List[Connection] = self.connected_connections
         connections.sort(key=lambda connection: connection.pending_requests)
         return connections[0]
+
+    @staticmethod
+    def run_in_thread(func: Callable[Param, Any], *args: Param.args, **kwargs: Param.kwargs) -> Thread:
+        """Method to run function in thread."""
+        thread: Thread = Thread(target=func, args=args, kwargs=kwargs)
+        thread.start()
+        return thread

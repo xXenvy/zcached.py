@@ -4,9 +4,6 @@ from typing import Any, Type, Generic, TypeVar
 import asyncio
 import logging as logger
 
-from string import ascii_uppercase
-from random import choice
-
 from ..connection import Connection
 from ..result import Result
 from ..enums import Errors
@@ -62,8 +59,6 @@ class AsyncConnection(Connection, Generic[ProtocolT]):
         "_reader",
         "_writer",
         "_protocol",
-        "_pending_requests",
-        "_id",
     )
 
     def __init__(
@@ -96,16 +91,9 @@ class AsyncConnection(Connection, Generic[ProtocolT]):
         self._writer: asyncio.StreamWriter | None = None
 
         self._lock: asyncio.Lock = asyncio.Lock()
-        self._pending_requests: int = 0
-        self._id: str = "".join([choice(ascii_uppercase) for _ in range(6)])
 
     def __repr__(self) -> str:
         return f"<AsyncConnection(host={self.host}, port={self.port}, buffer_size={self.buffer_size}, id={self.id})>"
-
-    @property
-    def id(self) -> str:
-        """Unique identifier for the connection."""
-        return f"#{self._id}-{self.port}"
 
     @property
     def protocol(self) -> ProtocolT | None:
@@ -132,16 +120,6 @@ class AsyncConnection(Connection, Generic[ProtocolT]):
         """The transport object for the connection, if StreamWriter is available."""
         if self._writer is not None:
             return self._writer.transport
-
-    @property
-    def pending_requests(self) -> int:
-        """The number of pending requests."""
-        return self._pending_requests
-
-    @property
-    def is_locked(self) -> bool:
-        """Whether the connection is locked."""
-        return self._lock.locked()
 
     async def connect(self) -> None:
         """Coroutine to establish a connection with the server asynchronously."""
@@ -207,7 +185,7 @@ class AsyncConnection(Connection, Generic[ProtocolT]):
         self._connected = False
         await self.connect()
 
-        if self.is_connected is True:
+        if self.is_connected() is True:
             return Result.fail(Errors.ConnectionReestablished.value)
 
         return Result.fail(Errors.ConnectionClosed.value)
@@ -333,5 +311,7 @@ class AsyncConnection(Connection, Generic[ProtocolT]):
             await self._writer.wait_closed()
 
             self._writer = None
-            self._reader = None
             self._pending_requests = 0
+
+        if self._reader:
+            self._reader = None

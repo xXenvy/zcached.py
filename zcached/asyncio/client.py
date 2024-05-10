@@ -4,7 +4,7 @@ import logging as logger
 from typing import Any, ClassVar, TYPE_CHECKING, Type, List
 from asyncio import get_event_loop, StreamReaderProtocol
 
-from .connection_pool import ConnectionPool
+from .connection_pool import AsyncConnectionPool
 from .connection import AsyncConnection
 
 from ..result import Result
@@ -64,12 +64,12 @@ class AsyncZCached:
         buffer_size: int = 2048,
         loop: AbstractEventLoop | None = None,
         protocol_type: Type[StreamReaderProtocol] | None = None,
-        **kwargs: Any,
+        **kwargs: AsyncConnectionPool,  # Currently only connection pool is available
     ):
         if pool := kwargs.get("connection_pool"):
-            self.connection_pool: ConnectionPool = pool
+            self.connection_pool: AsyncConnectionPool = pool
         else:
-            self.connection_pool: ConnectionPool = ConnectionPool(
+            self.connection_pool: AsyncConnectionPool = AsyncConnectionPool(
                 pool_size=pool_size,
                 connection_factory=lambda: AsyncConnection(
                     host=host,
@@ -256,7 +256,7 @@ class AsyncZCached:
             return None
 
     @classmethod
-    def from_connection_pool(cls, connection_pool: ConnectionPool) -> Self:
+    def from_connection_pool(cls, connection_pool: AsyncConnectionPool) -> Self:
         """
         Creates a client instance from an existing connection pool.
 

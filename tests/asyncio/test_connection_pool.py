@@ -1,11 +1,11 @@
 import pytest
 
-from zcached.asyncio import ConnectionPool, AsyncConnection
+from zcached.asyncio import AsyncConnectionPool, AsyncConnection
 
 
 @pytest.mark.asyncio
 async def test_connection_pool():
-    pool: ConnectionPool = ConnectionPool(
+    pool: AsyncConnectionPool = AsyncConnectionPool(
         pool_size=3,
         connection_factory=lambda: AsyncConnection(
             host="127.0.0.1",
@@ -52,7 +52,7 @@ async def test_connection_pool():
 
 @pytest.mark.asyncio
 async def test_connection_pool_factory():
-    pool: ConnectionPool = ConnectionPool(
+    pool: AsyncConnectionPool = AsyncConnectionPool(
         pool_size=0,
         connection_factory=lambda: AsyncConnection(
             host="192.168.127.12",
@@ -66,7 +66,7 @@ async def test_connection_pool_factory():
     factory = pool.connection_factory
 
     connection: AsyncConnection = factory()
-    assert connection.is_connected is False
+    assert connection.is_connected() is False
     assert connection.port == 9595 and connection.host == "192.168.127.12"
     assert connection.connection_attempts == 0 and connection.reconnect is False
     assert connection.timeout_limit == 1 and connection.buffer_size == 128

@@ -71,7 +71,7 @@ class ZCached:
                     reconnect=reconnect,
                     timeout_limit=timeout_limit,
                     buffer_size=buffer_size,
-                )
+                ),
             )
 
     def __repr__(self) -> str:

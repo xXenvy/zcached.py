@@ -71,10 +71,10 @@ class Connection:
         self,
         host: str,
         port: int,
-        connection_attempts: int,
-        reconnect: bool,
-        timeout_limit: int,
-        buffer_size: int,
+        connection_attempts: int = 3,
+        reconnect: bool = True,
+        timeout_limit: int = 15,
+        buffer_size: int = 2048,
     ):
         self.socket: socket = socket(AF_INET, SOCK_STREAM)
         self.buffer_size: int = buffer_size

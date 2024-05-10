@@ -16,3 +16,8 @@ if not client.is_alive():
 threads = [threading.Thread(target=worker, args=(x, client)) for x in range(10)]
 for thread in threads:
     thread.start()
+
+
+# There is also a second, easier way. However, this one has limitations.
+for w_id in range(10):
+    client.connection_pool.run_in_thread(worker, w_id, client)

@@ -1,6 +1,9 @@
 name: Pyright
 
-on: [push]
+on:
+  push:
+    paths-ignore:
+      - 'docs/**'
 
 
 jobs:
@@ -23,7 +26,6 @@ jobs:
       - name: Run pyright (Linux)
         uses: jakebailey/pyright-action@v1.4.1
         with:
-          paths-ignore: "docs/**"
           version: ${{ env.PYRIGHT_VERSION }}
           python-version: ${{ matrix.python-version }}
           python-platform: Linux
@@ -33,7 +35,6 @@ jobs:
         uses: jakebailey/pyright-action@v1.4.1
         if: success() || failure()
         with:
-          paths-ignore: "docs/**"
           version: ${{ env.PYRIGHT_VERSION }}
           python-version: ${{ matrix.python-version }}
           python-platform: Windows

@@ -24,4 +24,3 @@ Handling Errors
    result: Result[str] = client.get("key123")
    if result.error:
        handle_error(error_message=result.error)
-

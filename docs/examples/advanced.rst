@@ -58,4 +58,3 @@ Advanced
        print(manager.get_total_quantity())
        print(manager.get_total_cost())
        manager.flush()
-

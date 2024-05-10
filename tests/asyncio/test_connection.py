@@ -6,7 +6,7 @@ from asyncio import StreamReaderProtocol
 
 
 @pytest.mark.asyncio
-async def test_connnection():
+async def test_connection():
 
     class MyProtocol(StreamReaderProtocol):
         @staticmethod
@@ -32,13 +32,11 @@ async def test_connnection():
     assert (connection.transport, connection.protocol) == (None, None)
     assert connection.pending_requests == 0
 
-    await connection.connect()
-
     with pytest.raises(ConnectionError):
         await connection.open_connection(host=connection.host, port=connection.port)
 
     assert (await connection.try_reconnect()).error == Errors.ConnectionClosed
     assert (await connection.send(b"DOG")).error == Errors.ConnectionClosed
     assert (await connection.wait_for_response()).error == Errors.ConnectionClosed
-    assert await connection.receive(0) is None
-    assert connection.is_locked is False
+    assert await connection.receive(0.1) is None
+    assert connection.is_locked() is False

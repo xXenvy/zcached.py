@@ -4,7 +4,10 @@ import logging
 
 from socket import socket, SOCK_STREAM, AF_INET
 from threading import Lock
+
 from time import sleep
+from string import ascii_uppercase
+from random import choice
 
 from .backoff import ExponentialBackoff
 from .result import Result
@@ -60,16 +63,18 @@ class Connection:
         "_host",
         "_connected",
         "_lock",
+        "_pending_requests",
+        "_id",
     )
 
     def __init__(
         self,
         host: str,
         port: int,
-        connection_attempts: int,
-        reconnect: bool,
-        timeout_limit: int,
-        buffer_size: int,
+        connection_attempts: int = 3,
+        reconnect: bool = True,
+        timeout_limit: int = 15,
+        buffer_size: int = 2048,
     ):
         self.socket: socket = socket(AF_INET, SOCK_STREAM)
         self.buffer_size: int = buffer_size
@@ -80,10 +85,13 @@ class Connection:
 
         self._host: str = host
         self._port: int = port
+        self._pending_requests: int = 0
 
         self._connected: bool = False
         self._backoff = ExponentialBackoff(0.5, 2, 3)
+
         self._lock: Lock = Lock()
+        self._id: str = "".join([choice(ascii_uppercase) for _ in range(6)])
 
     def __repr__(self) -> str:
         return f"<Connection(host={self.host}, port={self.port}, buffer_size={self.buffer_size})>"
@@ -99,6 +107,19 @@ class Connection:
         return self._port
 
     @property
+    def pending_requests(self) -> int:
+        """The number of pending requests."""
+        return self._pending_requests
+
+    @property
+    def id(self) -> str:
+        """Unique identifier for the connection."""
+        return f"#{self._id}-{self.port}"
+
+    def is_locked(self) -> bool:
+        """Whether the connection is locked."""
+        return self._lock.locked()
+
     def is_connected(self) -> bool:
         """
         A boolean indicating whether the `connect` method was successfully invoked.
@@ -113,25 +134,25 @@ class Connection:
         """
         Method to connect a socket to the database server.
         """
-        logging.debug(f"Connecting to {self.host}:{self.port}...")
+        logging.debug(f"{self.id} -> Connecting to {self.host}:{self.port}...")
 
         for attempt, timeout in enumerate(self._backoff):
             try:
                 self.socket.connect((self.host, self.port))
                 self.socket.setblocking(False)
 
-                logging.info("Connected to the server.")
+                logging.info(f"{self.id} -> Connected to the server.")
                 self._connected = True
                 break
             except Exception as exception:
-                if attempt + 1 >= self.connection_attempts:
-                    break
-
                 logging.exception(exception)
-                if not self.reconnect:
+
+                if attempt + 1 >= self.connection_attempts or not self.reconnect:
                     break
 
-                logging.warning("Connecting to the server failed. Retrying...")
+                logging.warning(
+                    f"{self.id} -> Connecting to the server failed. Retrying..."
+                )
                 sleep(timeout)
 
     def receive(self) -> bytes | None:
@@ -141,7 +162,7 @@ class Connection:
         """
         try:
             data: bytes = self.socket.recv(self.buffer_size)
-            logging.debug("Received a response -> %s", data)
+            logging.debug(f"{self.id} -> Received a response -> %s", data)
         except (BlockingIOError, ConnectionAbortedError, OSError):
             return None
 
@@ -159,11 +180,15 @@ class Connection:
             Bytes to send.
         """
         if self._lock.locked():
-            logging.debug("Waiting for the thread lock to become available.")
+            logging.debug(
+                f"{self.id} -> Waiting for the thread lock to become available."
+            )
+
+        self._pending_requests += 1
 
         with self._lock:
             try:
-                logging.debug("Sending data to the server -> %s", data)
+                logging.debug(f"{self.id} -> Sending data to the server -> %s", data)
                 self.socket.send(data)
             except (BrokenPipeError, OSError):
                 if not self.reconnect:
@@ -189,13 +214,13 @@ class Connection:
             with a failure status and an informational message indicating that the connection
             was terminated but managed to reestablish it.
         """
-        logging.debug("Attempting to reconnect to the server...")
+        logging.debug(f"{self.id} -> Attempting to reconnect to the server...")
 
         self.socket: socket = socket(AF_INET, SOCK_STREAM)
         self._connected = False
         self.connect()
 
-        if self.is_connected is True:
+        if self.is_connected() is True:
             return Result.fail(Errors.ConnectionReestablished.value)
 
         return Result.fail(Errors.ConnectionClosed.value)
@@ -222,11 +247,11 @@ class Connection:
                 else:
                     # We haven't received any data yet.
                     logging.debug(
-                        f"There is no data in the socket. Timeout: {timeout}s."
+                        f"{self.id} -> There is no data in the socket. Timeout: {timeout}s."
                     )
                     if backoff.total >= float(self.timeout_limit):
                         logging.error(
-                            "The waiting time limit for a response has been reached."
+                            f"{self.id} -> The waiting time limit for a response has been reached."
                         )
                         return Result.fail(Errors.TimeoutLimit.value)
 
@@ -234,6 +259,9 @@ class Connection:
                     continue
 
             if transfer_complete:
+                if self._pending_requests >= 1:
+                    self._pending_requests -= 1
+
                 # If the first byte is "-", it means that the response is an error.
                 if total_bytes.startswith(b"-"):
                     error_message: str = total_bytes.decode()[1:-2]
@@ -252,3 +280,8 @@ class Connection:
 
         # This should never happen, but the type checker yells.
         return Result.fail(Errors.LibraryBug.value)
+
+    def close(self) -> None:
+        """Method to close the connection."""
+        self._connected = False
+        self.socket.close()

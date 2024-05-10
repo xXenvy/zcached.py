@@ -116,7 +116,9 @@ class ConnectionPool:
         size:
             The number of connections to add to the pool.
         """
-        return self.extend_pool_by_connections([self._connection_factory() for _ in range(size)])
+        return self.extend_pool_by_connections(
+            [self._connection_factory() for _ in range(size)]
+        )
 
     def extend_pool_by_connections(self, connections: Iterable[Connection]) -> None:
         """
@@ -128,7 +130,9 @@ class ConnectionPool:
         connections:
             An iterable of existing connections to add to the pool.
         """
-        threads: list[Thread] = [self.run_in_thread(func=conn.connect) for conn in connections]
+        threads: list[Thread] = [
+            self.run_in_thread(func=conn.connect) for conn in connections
+        ]
 
         self._connections.extend(connections)
         self._pool_size = len(self._connections)
@@ -136,9 +140,7 @@ class ConnectionPool:
         for thread in threads:
             thread.join()
 
-        logger.debug(
-            "Extended connection pool. New size: %s.", self._pool_size
-        )
+        logger.debug("Extended connection pool. New size: %s.", self._pool_size)
 
     def reconnect(self, only_broken_connections: bool = True) -> int:
         """
@@ -154,8 +156,12 @@ class ConnectionPool:
             "Reconnecting connection pool. Only broken connections: %s.",
             only_broken_connections,
         )
-        connections: List[Connection] = self.broken_connections if only_broken_connections else self.connections
-        threads: List[Thread] = [self.run_in_thread(func=conn.try_reconnect) for conn in connections]
+        connections: List[Connection] = (
+            self.broken_connections if only_broken_connections else self.connections
+        )
+        threads: List[Thread] = [
+            self.run_in_thread(func=conn.try_reconnect) for conn in connections
+        ]
 
         for thread in threads:
             thread.join()
@@ -246,7 +252,9 @@ class ConnectionPool:
         return connections[0]
 
     @staticmethod
-    def run_in_thread(func: Callable[Param, Any], *args: Param.args, **kwargs: Param.kwargs) -> Thread:
+    def run_in_thread(
+        func: Callable[Param, Any], *args: Param.args, **kwargs: Param.kwargs
+    ) -> Thread:
         """Method to run function in thread."""
         thread: Thread = Thread(target=func, args=args, kwargs=kwargs)
         thread.start()

@@ -112,7 +112,9 @@ class AsyncConnectionPool:
         size:
             The number of connections to add to the pool.
         """
-        return await self.extend_pool_by_connections([self.connection_factory() for _ in range(size)])
+        return await self.extend_pool_by_connections(
+            [self.connection_factory() for _ in range(size)]
+        )
 
     async def extend_pool_by_connections(
         self, connections: Iterable[AsyncConnection]
@@ -126,15 +128,15 @@ class AsyncConnectionPool:
         connections:
             An iterable of existing connections to add to the pool.
         """
-        tasks: list[Task] = [conn.loop.create_task(conn.connect()) for conn in connections]
+        tasks: list[Task] = [
+            conn.loop.create_task(conn.connect()) for conn in connections
+        ]
 
         self._connections.extend(connections)
         self._pool_size = len(self._connections)
 
         await gather(*tasks)
-        logger.debug(
-            "Extended connection pool. New size: %s.", self._pool_size
-        )
+        logger.debug("Extended connection pool. New size: %s.", self._pool_size)
 
     async def reconnect(self, only_broken_connections: bool = True) -> int:
         """
@@ -150,8 +152,12 @@ class AsyncConnectionPool:
             "Reconnecting connection pool. Only broken connections: %s.",
             only_broken_connections,
         )
-        connections: List[AsyncConnection] = self.broken_connections if only_broken_connections else self.connections
-        await gather(*(conn.loop.create_task(conn.try_reconnect()) for conn in connections))
+        connections: List[AsyncConnection] = (
+            self.broken_connections if only_broken_connections else self.connections
+        )
+        await gather(
+            *(conn.loop.create_task(conn.try_reconnect()) for conn in connections)
+        )
 
         return len(self.connected_connections)
 

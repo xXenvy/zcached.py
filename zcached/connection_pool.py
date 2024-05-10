@@ -3,7 +3,8 @@ from __future__ import annotations
 from threading import Thread
 import logging as logger
 
-from typing import TYPE_CHECKING, List, Callable, Iterable, ParamSpec, Any
+from typing import TYPE_CHECKING, List, Callable, Iterable, Any
+from typing_extensions import ParamSpec
 
 if TYPE_CHECKING:
     from .connection import Connection

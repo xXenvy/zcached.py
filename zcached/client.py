@@ -24,6 +24,8 @@ class ZCached:
         Server port number.
     pool_size:
         Number of connections to be created in the connection pool.
+        If you do not send a large number of requests simultaneously in other threads,
+        then you do not need more connections than 1.
     buffer_size:
         The size of the buffer for receiving data from the server, in bytes.
         Larger values for buff_size may allow for more data to be received in a single operation,

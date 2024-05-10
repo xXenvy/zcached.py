@@ -28,6 +28,8 @@ class AsyncZCached:
         Server port number.
     pool_size:
         Number of connections to be created in the connection pool.
+        If you do not send a large number of requests simultaneously in other tasks,
+        then you do not need more connections than 1.
     connection_attempts:
         The maximum number of attempts to establish a connection with the server.
     reconnect:

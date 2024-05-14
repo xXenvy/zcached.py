@@ -94,53 +94,37 @@ class AsyncZCached:
         logger.info("Running the zcached client...")
         await self.connection_pool.setup()
 
-    async def ping(self) -> Result[str]:
-        """Sends a ping command to the database server."""
+    async def send(self, data: bytes) -> Result:
+        """Method to send data to the server."""
         connection: AsyncConnection | None = self.get_connection()
         if not connection:
             return Result.fail(Errors.NoAvailableConnections.value)
 
-        return await connection.send(Commands.PING.value)
+        return await connection.send(data)
+
+    async def ping(self) -> Result[str]:
+        """Sends a ping command to the database server."""
+        return await self.send(Commands.PING.value)
 
     async def flush(self) -> Result[str]:
         """Sends a flush command to the database server."""
-        connection: AsyncConnection | None = self.get_connection()
-        if not connection:
-            return Result.fail(Errors.NoAvailableConnections.value)
-
-        return await connection.send(Commands.FLUSH.value)
+        return await self.send(Commands.FLUSH.value)
 
     async def dbsize(self) -> Result[int]:
         """Sends a db size command to the database server."""
-        connection: AsyncConnection | None = self.get_connection()
-        if not connection:
-            return Result.fail(Errors.NoAvailableConnections.value)
-
-        return await connection.send(Commands.DB_SIZE.value)
+        return await self.send(Commands.DB_SIZE.value)
 
     async def save(self) -> Result[str]:
         """Sends a save command to the database server."""
-        connection: AsyncConnection | None = self.get_connection()
-        if not connection:
-            return Result.fail(Errors.NoAvailableConnections.value)
-
-        return await connection.send(Commands.SAVE.value)
+        return await self.send(Commands.SAVE.value)
 
     async def keys(self) -> Result[List[str]]:
         """Sends a key command to the database server."""
-        connection: AsyncConnection | None = self.get_connection()
-        if not connection:
-            return Result.fail(Errors.NoAvailableConnections.value)
-
-        return await connection.send(Commands.KEYS.value)
+        return await self.send(Commands.KEYS.value)
 
     async def lastsave(self) -> Result[int]:
         """Sends a last save command to the database server."""
-        connection: AsyncConnection | None = self.get_connection()
-        if not connection:
-            return Result.fail(Errors.NoAvailableConnections.value)
-
-        return await connection.send(Commands.LAST_SAVE.value)
+        return await self.send(Commands.LAST_SAVE.value)
 
     async def get(self, key: str) -> Result:
         """
@@ -151,11 +135,7 @@ class AsyncZCached:
         key:
             The key to retrieve the value from the database.
         """
-        connection: AsyncConnection | None = self.get_connection()
-        if not connection:
-            return Result.fail(Errors.NoAvailableConnections.value)
-
-        return await connection.send(Commands.get(key))
+        return await self.send(Commands.get(key))
 
     async def mget(self, *keys: str) -> Result[dict[str, Any]]:
         """
@@ -172,11 +152,7 @@ class AsyncZCached:
         keys:
             Keys to retrieve values from the database.
         """
-        connection: AsyncConnection | None = self.get_connection()
-        if not connection:
-            return Result.fail(Errors.NoAvailableConnections.value)
-
-        return await connection.send(Commands.mget(*keys))
+        return await self.send(Commands.mget(*keys))
 
     async def set(self, key: str, value: SupportedTypes) -> Result[str]:
         """
@@ -189,11 +165,7 @@ class AsyncZCached:
         value:
             The value of the record.
         """
-        connection: AsyncConnection | None = self.get_connection()
-        if not connection:
-            return Result.fail(Errors.NoAvailableConnections.value)
-
-        return await connection.send(Commands.set(key, value))
+        return await self.send(Commands.set(key, value))
 
     async def mset(self, **params: SupportedTypes) -> Result[str]:
         """
@@ -205,11 +177,7 @@ class AsyncZCached:
         params:
             Keyword arguments representing key-value pairs to be set in the database.
         """
-        connection: AsyncConnection | None = self.get_connection()
-        if not connection:
-            return Result.fail(Errors.NoAvailableConnections.value)
-
-        return await connection.send(Commands.mset(**params))
+        return await self.send(Commands.mset(**params))
 
     async def delete(self, key: str) -> Result[str]:
         """
@@ -220,11 +188,7 @@ class AsyncZCached:
         key:
             Key of the record being deleted.
         """
-        connection: AsyncConnection | None = self.get_connection()
-        if not connection:
-            return Result.fail(Errors.NoAvailableConnections.value)
-
-        return await connection.send(Commands.delete(key))
+        return await self.send(Commands.delete(key))
 
     async def is_alive(self) -> bool:
         """Checks if there is any active connection with the database server."""

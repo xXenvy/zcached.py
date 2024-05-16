@@ -29,7 +29,7 @@ class Result(Generic[T]):
     __slots__ = ("value", "error")
     _deserializer: ClassVar[Deserializer] = Deserializer()
 
-    def __init__(self, raw_value: bytes, error: str | None = None):
+    def __init__(self, raw_value: bytes, error: str | None = None) -> None:
         if error is not None:
             # If we have an error, the value will be empty, so there is no point in deserializing it.
             self.value: T = raw_value  # type: ignore
@@ -50,7 +50,7 @@ class Result(Generic[T]):
     def __bool__(self) -> bool:
         return self.success
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<Result(success={self.success})>"
 
     @property

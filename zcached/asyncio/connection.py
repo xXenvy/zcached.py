@@ -270,37 +270,33 @@ class AsyncConnection(Connection, Generic[ProtocolT]):
         NOT TASK SAFE.
         """
         if not self._reader:
+            logger.error(
+                f"{self.id} -> Missing StreamReader object! Did you forget to connect? "
+                f"Aborting the wait_for_response method..."
+            )
             return Result.fail(Errors.ConnectionClosed.value)
 
-        complete_data: bytes = bytes()
-        try:
-            data: bytes | None = await self.receive(timeout_limit=self.timeout_limit)
-            if data is None:
-                self._connected = False
-                return Result.fail(Errors.ConnectionClosed.value)
-        except asyncio.TimeoutError:
-            return Result.fail(Errors.TimeoutLimit.value)
+        total_data: bytes = bytes()
 
-        complete_data += data
-
-        while True:
+        while not total_data.endswith(b"\x04"):
             try:
-                data = await self.receive(timeout_limit=0.1)
+                data: bytes | None = await self.receive(timeout_limit=self.timeout_limit)
             except asyncio.TimeoutError:
-                break  # Transfer complete.
-            if data is None or len(data) == 0:
-                # When socket lose connection to the server it receives empty bytes.
-                self._connected = False
+                return Result.fail(Errors.TimeoutLimit.value)
+
+            # When socket lose connection to the server it receives empty bytes.
+            # Or when the data is None, it means that the reader has been abandoned.
+            if len(data) == 0 or data is None:
                 return Result.fail(Errors.ConnectionClosed.value)
 
-            complete_data += data
+            total_data += data
 
         # If the first byte is "-", it means that the response is an error.
-        if complete_data.startswith(b"-"):
-            error_message: str = complete_data.decode()[1:-2]
+        if total_data.startswith(b"-"):
+            error_message: str = total_data.decode()[1:-3]
             return Result.fail(error_message)
 
-        return Result.ok(complete_data)
+        return Result.ok(total_data[:-1])
 
     async def close(self) -> None:
         """Closes the connection by closing the writer, and waiting until the writer is fully closed."""

@@ -159,6 +159,8 @@ class Connection:
         """
         Method to receive the response from the server.
         None if there is no data in the socket yet.
+
+        NOT THREAD SAFE.
         """
         try:
             data: bytes = self.socket.recv(self.buffer_size)
@@ -227,12 +229,16 @@ class Connection:
         return Result.fail(Errors.ConnectionClosed.value)
 
     def wait_for_response(self) -> Result:
-        """A loop to wait for the response from the server."""
+        """
+        A loop to wait for the response from the server.
+
+        NOT THREAD SAFE.
+        """
         backoff: ExponentialBackoff = ExponentialBackoff(0.01, 3, 0.5)
-        total_bytes: bytes = bytes()
+        total_data: bytes = bytes()
 
         # By doing this, we should receive the data at the first recv, without waiting for the backoff.
-        sleep(0.01)
+        sleep(0.001)
 
         for timeout in backoff:
             data: bytes | None = self.receive()
@@ -251,15 +257,15 @@ class Connection:
                 # When socket lose connection to the server it receives empty bytes.
                 return Result.fail(Errors.ConnectionClosed.value)
 
-            total_bytes += data  # type: ignore
+            total_data += data  # type: ignore
 
-            if total_bytes.endswith(b"\x04"):  # Received complete data.
+            if total_data.endswith(b"\x04"):  # Received complete data.
                 # If the first byte is "-", it means that the response is an error.
-                if total_bytes.startswith(b"-"):
-                    error_message: str = total_bytes.decode()[1:-3]
+                if total_data.startswith(b"-"):
+                    error_message: str = total_data.decode()[1:-3]
                     return Result.fail(error_message)
 
-                return Result.ok(total_bytes[:-1])
+                return Result.ok(total_data[:-1])
 
             # ExponentialBackoff should be increased only when we receive None.
             backoff.reset()

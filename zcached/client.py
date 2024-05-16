@@ -83,53 +83,37 @@ class ZCached:
         """Establishes connections with the database server."""
         self.connection_pool.setup()
 
-    def ping(self) -> Result[str]:
-        """Send a ping command to the database."""
+    def send(self, data: bytes) -> Result:
+        """Method to send data to the server."""
         connection: Connection | None = self.get_connection()
         if not connection:
             return Result.fail(Errors.NoAvailableConnections.value)
 
-        return connection.send(Commands.PING.value)
+        return connection.send(data)
+
+    def ping(self) -> Result[str]:
+        """Send a ping command to the database."""
+        return self.send(Commands.PING.value)
 
     def flush(self) -> Result[str]:
         """Method to flush all database records."""
-        connection: Connection | None = self.get_connection()
-        if not connection:
-            return Result.fail(Errors.NoAvailableConnections.value)
-
-        return connection.send(Commands.FLUSH.value)
+        return self.send(Commands.FLUSH.value)
 
     def dbsize(self) -> Result[int]:
         """Retrieve the size of the database."""
-        connection: Connection | None = self.get_connection()
-        if not connection:
-            return Result.fail(Errors.NoAvailableConnections.value)
-
-        return connection.send(Commands.DB_SIZE.value)
+        return self.send(Commands.DB_SIZE.value)
 
     def save(self) -> Result[str]:
         """Method to save all database records."""
-        connection: Connection | None = self.get_connection()
-        if not connection:
-            return Result.fail(Errors.NoAvailableConnections.value)
-
-        return connection.send(Commands.SAVE.value)
+        return self.send(Commands.SAVE.value)
 
     def keys(self) -> Result[List[str]]:
         """Retrieve the keys of the database."""
-        connection: Connection | None = self.get_connection()
-        if not connection:
-            return Result.fail(Errors.NoAvailableConnections.value)
-
-        return connection.send(Commands.KEYS.value)
+        return self.send(Commands.KEYS.value)
 
     def lastsave(self) -> Result[int]:
         """Method to retrieve the Unix timestamp of the last successful database save."""
-        connection: Connection | None = self.get_connection()
-        if not connection:
-            return Result.fail(Errors.NoAvailableConnections.value)
-
-        return connection.send(Commands.LAST_SAVE.value)
+        return self.send(Commands.LAST_SAVE.value)
 
     def get(self, key: str) -> Result:
         """
@@ -140,11 +124,7 @@ class ZCached:
         key:
             The key to retrieve the value from the database.
         """
-        connection: Connection | None = self.get_connection()
-        if not connection:
-            return Result.fail(Errors.NoAvailableConnections.value)
-
-        return connection.send(Commands.get(key))
+        return self.send(Commands.get(key))
 
     def mget(self, *keys: str) -> Result[dict[str, Any]]:
         """
@@ -162,11 +142,7 @@ class ZCached:
         keys:
             Keys to retrieve values from the database.
         """
-        connection: Connection | None = self.get_connection()
-        if not connection:
-            return Result.fail(Errors.NoAvailableConnections.value)
-
-        return connection.send(Commands.mget(*keys))
+        return self.send(Commands.mget(*keys))
 
     def set(self, key: str, value: SupportedTypes) -> Result[str]:
         """
@@ -179,11 +155,7 @@ class ZCached:
         value:
             The value of the record.
         """
-        connection: Connection | None = self.get_connection()
-        if not connection:
-            return Result.fail(Errors.NoAvailableConnections.value)
-
-        return connection.send(Commands.set(key, value))
+        return self.send(Commands.set(key, value))
 
     def mset(self, **params: SupportedTypes) -> Result[str]:
         """
@@ -196,11 +168,7 @@ class ZCached:
         params:
             Keyword arguments representing key-value pairs to be set in the database.
         """
-        connection: Connection | None = self.get_connection()
-        if not connection:
-            return Result.fail(Errors.NoAvailableConnections.value)
-
-        return connection.send(Commands.mset(**params))
+        return self.send(Commands.mset(**params))
 
     def delete(self, key: str) -> Result[str]:
         """
@@ -211,11 +179,7 @@ class ZCached:
         key:
             Key of the record being deleted.
         """
-        connection: Connection | None = self.get_connection()
-        if not connection:
-            return Result.fail(Errors.NoAvailableConnections.value)
-
-        return connection.send(Commands.delete(key))
+        return self.send(Commands.delete(key))
 
     def exists(self, key: str) -> bool:
         """

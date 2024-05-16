@@ -30,7 +30,7 @@ class ConnectionPool:
         self,
         pool_size: int,
         connection_factory: Callable[[], Connection],
-    ):
+    ) -> None:
         self._pool_size: int = pool_size
         self._connection_factory: Callable[[], Connection] = connection_factory
         self._connections: List[Connection] = []

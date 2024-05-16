@@ -288,7 +288,7 @@ class AsyncConnection(Connection, Generic[ProtocolT]):
 
             # When socket lose connection to the server it receives empty bytes.
             # Or when the data is None, it means that the reader has been abandoned.
-            if len(data) == 0 or data is None:
+            if data is None or len(data) == 0:  # type: ignore
                 return Result.fail(Errors.ConnectionClosed.value)
 
             total_data += data

@@ -280,7 +280,9 @@ class AsyncConnection(Connection, Generic[ProtocolT]):
 
         while not total_data.endswith(b"\x04"):
             try:
-                data: bytes | None = await self.receive(timeout_limit=self.timeout_limit)
+                data: bytes | None = await self.receive(
+                    timeout_limit=self.timeout_limit
+                )
             except asyncio.TimeoutError:
                 return Result.fail(Errors.TimeoutLimit.value)
 

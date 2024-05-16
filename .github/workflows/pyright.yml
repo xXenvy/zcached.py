@@ -2,19 +2,20 @@ name: Pyright
 
 on: [push]
 
+
 jobs:
   pyright:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+        python-version: ["3.8", "3.9", "3.12"]
       fail-fast: false
     steps:
       - name: Check out repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install dependencies
-        run: pip install pyright pytest pytest-cov typing_extensions==4.1.0
+        run: pip install -r requirements.txt -r dev-requirements.txt
 
       - name: Set up pyright
         run: echo "PYRIGHT_VERSION=$(python -c 'import pyright; print(pyright.__pyright_version__)')" >> $GITHUB_ENV

@@ -1,0 +1,6 @@
+sphinx_autodoc_typehints
+sphinxext-opengraph
+sphinx_inline_tabs
+enum_tools
+sphinx_toolbox
+furo

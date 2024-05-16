@@ -7,14 +7,14 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.11", "3.12"]
+        python-version: ["3.8", "3.12"]
       fail-fast: false
     steps:
       - name: Check out repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install dependencies
-        run: pip install pyright pytest pytest-cov typing_extensions==4.1.0
+        run: pip install -r requirements.txt -r dev-requirements.txt
 
       - name: Run pytest
         run: |

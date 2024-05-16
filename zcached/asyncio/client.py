@@ -67,7 +67,7 @@ class AsyncZCached:
         loop: AbstractEventLoop | None = None,
         protocol_type: Type[StreamReaderProtocol] | None = None,
         **kwargs: AsyncConnectionPool,  # Currently only connection pool is available
-    ):
+    ) -> None:
         if pool := kwargs.get("connection_pool"):
             self.connection_pool: AsyncConnectionPool = pool
         else:

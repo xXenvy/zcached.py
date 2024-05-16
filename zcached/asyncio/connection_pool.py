@@ -27,7 +27,7 @@ class AsyncConnectionPool:
         self,
         pool_size: int,
         connection_factory: Callable[[], AsyncConnection],
-    ):
+    ) -> None:
         self._pool_size: int = pool_size
         self._connection_factory: Callable[[], AsyncConnection] = connection_factory
         self._connections: List[AsyncConnection] = []

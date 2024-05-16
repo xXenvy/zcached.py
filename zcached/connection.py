@@ -75,7 +75,7 @@ class Connection:
         reconnect: bool = True,
         timeout_limit: int = 15,
         buffer_size: int = 2048,
-    ):
+    ) -> None:
         self.socket: socket = socket(AF_INET, SOCK_STREAM)
         self.buffer_size: int = buffer_size
         self.connection_attempts: int = connection_attempts

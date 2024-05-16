@@ -221,8 +221,10 @@ class AsyncConnection(Connection, Generic[ProtocolT]):
                 logger.debug(f"{self.id} -> The connection has been terminated.")
                 if not self.reconnect:
                     return Result.fail(Errors.ConnectionClosed.value)
-
                 return await self.try_reconnect()
+            finally:
+                if self._pending_requests >= 1:
+                    self._pending_requests -= 1
 
             result: Result = await self.wait_for_response()
             if self.reconnect and result.error == Errors.ConnectionClosed:
@@ -292,9 +294,6 @@ class AsyncConnection(Connection, Generic[ProtocolT]):
                 return Result.fail(Errors.ConnectionClosed.value)
 
             complete_data += data
-
-        if self._pending_requests >= 1:
-            self._pending_requests -= 1
 
         # If the first byte is "-", it means that the response is an error.
         if complete_data.startswith(b"-"):

@@ -5,8 +5,12 @@ on: [push]
 
 jobs:
   pyright:
+    name: pyright
     runs-on: ubuntu-latest
-    name: Pyright
+    strategy:
+      matrix:
+        python-version: ["3.12"]
+      fail-fast: false
     steps:
       - name: Check out repository
         uses: actions/checkout@v4

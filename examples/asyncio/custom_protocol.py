@@ -4,9 +4,7 @@ import typing
 from zcached.asyncio import AsyncZCached
 
 
-class MyProtocol(
-    asyncio.StreamReaderProtocol
-):  # Our protocol must inherit from the StreamReaderProtocol.
+class MyProtocol(asyncio.StreamReaderProtocol):  # Our protocol must inherit from the StreamReaderProtocol.
 
     def connection_made(self, transport: asyncio.BaseTransport) -> None:
         """Called when we made a connection to the server."""
@@ -27,9 +25,7 @@ class MyProtocol(
 
 
 async def main():
-    client: AsyncZCached = AsyncZCached(
-        host="127.0.0.1", port=7556, protocol_type=MyProtocol
-    )
+    client: AsyncZCached = AsyncZCached(host="127.0.0.1", port=7556, protocol_type=MyProtocol)
     await client.run()
 
 

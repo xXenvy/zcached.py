@@ -91,15 +91,8 @@ class AsyncConnectionPool:
 
     async def close(self) -> None:
         """Closes all connected connections in the pool."""
-        logger.info(
-            "Closing: %s connnections in the pool", len(self.connected_connections)
-        )
-        await gather(
-            *(
-                conn.loop.create_task(conn.close())
-                for conn in self.connected_connections
-            )
-        )
+        logger.info("Closing: %s connnections in the pool", len(self.connected_connections))
+        await gather(*(conn.loop.create_task(conn.close()) for conn in self.connected_connections))
         self._connections.clear()
 
     async def extend_pool_by_size(self, size: int) -> None:
@@ -112,13 +105,9 @@ class AsyncConnectionPool:
         size:
             The number of connections to add to the pool.
         """
-        return await self.extend_pool_by_connections(
-            [self.connection_factory() for _ in range(size)]
-        )
+        return await self.extend_pool_by_connections([self.connection_factory() for _ in range(size)])
 
-    async def extend_pool_by_connections(
-        self, connections: Iterable[AsyncConnection]
-    ) -> None:
+    async def extend_pool_by_connections(self, connections: Iterable[AsyncConnection]) -> None:
         """
         Extends the pool with existing connections.
         The pool size will be increased if necessary.
@@ -128,9 +117,7 @@ class AsyncConnectionPool:
         connections:
             An iterable of existing connections to add to the pool.
         """
-        tasks: list[Task] = [
-            conn.loop.create_task(conn.connect()) for conn in connections
-        ]
+        tasks: list[Task] = [conn.loop.create_task(conn.connect()) for conn in connections]
 
         self._connections.extend(connections)
         self._pool_size = len(self._connections)
@@ -155,15 +142,11 @@ class AsyncConnectionPool:
         connections: List[AsyncConnection] = (
             self.broken_connections if only_broken_connections else self.connections
         )
-        await gather(
-            *(conn.loop.create_task(conn.try_reconnect()) for conn in connections)
-        )
+        await gather(*(conn.loop.create_task(conn.try_reconnect()) for conn in connections))
 
         return len(self.connected_connections)
 
-    def reduce_pool_connections(
-        self, amount: int, delete_pending_connections: bool = False
-    ) -> None:
+    def reduce_pool_connections(self, amount: int, delete_pending_connections: bool = False) -> None:
         """
         Reduces the size of the connection pool by a specified amount.
         By default, the method first removes non-working connections,

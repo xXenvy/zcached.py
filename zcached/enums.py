@@ -5,9 +5,7 @@ from .protocol import Serializer, SupportedTypes
 
 class Errors(str, Enum):
     ConnectionClosed = "The connection has been terminated."
-    ConnectionReestablished = (
-        "The connection was terminated, but managed to reestablish it."
-    )
+    ConnectionReestablished = "The connection was terminated, but managed to reestablish it."
     LibraryBug = "This is probably a library bug. Please report it here: https://github.com/xXenvy/zcached.py"
     TimeoutLimit = "The waiting time limit for a response has been reached."
     NoAvailableConnections = "No working connections available."

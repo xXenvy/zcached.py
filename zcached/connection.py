@@ -150,9 +150,7 @@ class Connection:
                 if attempt + 1 >= self.connection_attempts or not self.reconnect:
                     break
 
-                logging.warning(
-                    f"{self.id} -> Connecting to the server failed. Retrying..."
-                )
+                logging.warning(f"{self.id} -> Connecting to the server failed. Retrying...")
                 sleep(timeout)
 
     def receive(self) -> bytes | None:
@@ -185,7 +183,6 @@ class Connection:
             logging.debug(
                 f"{self.id} -> Waiting for the thread lock to become available."
             )
-        self._pending_requests += 1
 
         with self._lock:
             try:

@@ -6,10 +6,6 @@ on: [push]
 jobs:
   pyright:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.8", "3.9", "3.12"]
-      fail-fast: false
     steps:
       - name: Check out repository
         uses: actions/checkout@v4

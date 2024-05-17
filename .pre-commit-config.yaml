@@ -16,9 +16,9 @@ repos:
         language: python
         files: zcached/
         additional_dependencies:
-          - autotyping
-          - black
-          - libcst
+          - autotyping==24.3.0
+          - black==23.12.1
+          - libcst==1.2.0
 
   - repo: https://github.com/psf/black
     rev: 24.4.2

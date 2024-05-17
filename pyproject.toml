@@ -12,5 +12,5 @@ target-version = ["py38", "py39", "py310", "py311", "py312"]
 docs = { cmd = "cd docs && pip install -r docs-requirements.txt && sphinx-autobuild . _build/html --ignore _build --watch . --port 9191", help = "Build the documentation on an autoreloading server." }
 precommit = { cmd = "pre-commit run --all-files", help = "Run the precommit hooks" }
 pyright = { cmd = "python -m pyright .", help = "Run pyright" }
-pytest = { cmd = "python -m pytest tests/", help = "Run pytest" }
+pytest = { cmd = "python -m pytest -v .", help = "Run pytest" }
 autotyping = { cmd = "task lint autotyping", help = "Refactor code to add automatic type annotations" }

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Sequence
 from argparse import ArgumentParser
-from subprocess import run as run_in_subprocess
+from subprocess import SubprocessError, run as run_in_subprocess
 
 import sys
 
@@ -29,4 +29,7 @@ def main(argv: Sequence[str] | None = None) -> None:
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except SubprocessError:
+        pass

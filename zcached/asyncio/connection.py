@@ -127,9 +127,7 @@ class AsyncConnection(Connection, Generic[ProtocolT]):
 
         for attempt, timeout in enumerate(self._backoff):
             try:
-                self._reader, self._writer = await self.open_connection(
-                    host=self.host, port=self.port
-                )
+                self._reader, self._writer = await self.open_connection(host=self.host, port=self.port)
                 logger.info(f"{self.id} -> Connected to the server.")
                 self._connected = True
                 break
@@ -138,9 +136,7 @@ class AsyncConnection(Connection, Generic[ProtocolT]):
                 if attempt + 1 >= self.connection_attempts or not self.reconnect:
                     break
 
-                logger.warning(
-                    f"{self.id} -> Connecting to the server failed. Retrying..."
-                )
+                logger.warning(f"{self.id} -> Connecting to the server failed. Retrying...")
                 await asyncio.sleep(timeout)
 
     async def open_connection(
@@ -255,9 +251,7 @@ class AsyncConnection(Connection, Generic[ProtocolT]):
             # the reader will wait for it as long as needed.
             data: bytes = await self._reader.read(self.buffer_size)
         else:
-            data: bytes = await asyncio.wait_for(
-                self._reader.read(self.buffer_size), timeout=timeout_limit
-            )
+            data: bytes = await asyncio.wait_for(self._reader.read(self.buffer_size), timeout=timeout_limit)
         logger.debug(f"{self.id} -> Received data: %s.", data)
         return data
 

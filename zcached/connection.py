@@ -150,9 +150,7 @@ class Connection:
                 if attempt + 1 >= self.connection_attempts or not self.reconnect:
                     break
 
-                logging.warning(
-                    f"{self.id} -> Connecting to the server failed. Retrying..."
-                )
+                logging.warning(f"{self.id} -> Connecting to the server failed. Retrying...")
                 sleep(timeout)
 
     def receive(self) -> bytes | None:
@@ -180,9 +178,7 @@ class Connection:
             Bytes to send.
         """
         if self._lock.locked():
-            logging.debug(
-                f"{self.id} -> Waiting for the thread lock to become available."
-            )
+            logging.debug(f"{self.id} -> Waiting for the thread lock to become available.")
 
         self._pending_requests += 1
 
@@ -246,13 +242,9 @@ class Connection:
                     transfer_complete = True
                 else:
                     # We haven't received any data yet.
-                    logging.debug(
-                        f"{self.id} -> There is no data in the socket. Timeout: {timeout}s."
-                    )
+                    logging.debug(f"{self.id} -> There is no data in the socket. Timeout: {timeout}s.")
                     if backoff.total >= float(self.timeout_limit):
-                        logging.error(
-                            f"{self.id} -> The waiting time limit for a response has been reached."
-                        )
+                        logging.error(f"{self.id} -> The waiting time limit for a response has been reached.")
                         return Result.fail(Errors.TimeoutLimit.value)
 
                     sleep(timeout)

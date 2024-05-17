@@ -6,6 +6,7 @@ on: [push]
 jobs:
   pyright:
     runs-on: ubuntu-latest
+    name: Pyright
     steps:
       - name: Check out repository
         uses: actions/checkout@v4

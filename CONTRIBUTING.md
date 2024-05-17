@@ -20,25 +20,28 @@ Welcome to the contributing guide for zcached.py! This guide will walk you throu
 > `cd zcached.py`
 
 3. Install dependencies: Use pip to install the required dependencies for the project.
-> `pip install -r requirements.txt`
-
-This is required to run the tests.
-> `pip install -r dev-requirements.txt`
+> `pip install -r requirements.txt -r dev-requirements.txt`
 
 **Your environment is now set up and ready for development or usage!**
 
-## Running tests.
+## Running tests / Building docs.
 > [!NOTE]
 > Before running the tests, make sure you are in the project directory.
 
 ### Pytest / Unit tests.
+**Tests perform reconnects, so they can take more than 20 seconds to do!**
+
 To run the unit tests use the following command:
-> `pytest tests/`
+> `task pytest`
 
 ### Pyright / Type checking.
 To perform type checking with Pyright use:
-> `pyright zcached/`
+> `task pyright`
 
 ### Pre-commit hooks.
 To run, use:
-> `pre-commit run --all-files`
+> `task precommit`
+
+### Building docs
+To build the docs use:
+> `task docs`

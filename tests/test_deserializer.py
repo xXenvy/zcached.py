@@ -18,9 +18,7 @@ test_values = {
         None,
         "array",
     ],
-    b"%1\r\n$3\r\npik\r\n*3\r\n_\r\n#f\r\n*2\r\n:1\r\n:2\r\n": {
-        "pik": [None, False, [1, 2]]
-    },
+    b"%1\r\n$3\r\npik\r\n*3\r\n_\r\n#f\r\n*2\r\n:1\r\n:2\r\n": {"pik": [None, False, [1, 2]]},
     b"#f\r\n": False,
     b"#t\r\n": True,
     b"_\r\n": None,

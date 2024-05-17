@@ -13,6 +13,7 @@ def main(argv: Sequence[str] | None = None) -> None:
     args = parser.parse_args(argv)
     if not args.paths:
         sys.exit(0)
+
     run_in_subprocess(
         [
             "python",

@@ -1,8 +1,16 @@
 [tool.pyright]
 typeCheckingMode = "basic"
 pythonVersion = "3.8, 3.9, 3.10, 3.11, 3.12"
-exclude = ["docs/**"]
+exclude = ["docs/**", "venv/**"]
 
 
-[tool.ruff]
-line-length = 120
+[tool.black]
+line-length = 110
+target-version = ["py38", "py39", "py310", "py311", "py312"]
+
+[tool.taskipy.tasks]
+docs = { cmd = "cd docs && pip install -r docs-requirements.txt && sphinx-autobuild . _build/html --ignore _build --watch . --port 9191", help = "Build the documentation on an autoreloading server." }
+precommit = { cmd = "pre-commit run --all-files", help = "Run the precommit hooks" }
+pyright = { cmd = "python -m pyright .", help = "Run pyright" }
+pytest = { cmd = "python -m pytest tests/", help = "Run pytest" }
+autotyping = { cmd = "task lint autotyping", help = "Refactor code to add automatic type annotations" }

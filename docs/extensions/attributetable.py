@@ -48,21 +48,15 @@ def visit_attributetable_node(self: HTML5Translator, node: attributetable) -> No
     self.body.append(f'<div class="py-attribute-table" data-move-to-id="{class_}">')
 
 
-def visit_attributetablecolumn_node(
-    self: HTML5Translator, node: attributetablecolumn
-) -> None:
+def visit_attributetablecolumn_node(self: HTML5Translator, node: attributetablecolumn) -> None:
     self.body.append(self.starttag(node, "div", CLASS="py-attribute-table-column"))
 
 
-def visit_attributetabletitle_node(
-    self: HTML5Translator, node: attributetabletitle
-) -> None:
+def visit_attributetabletitle_node(self: HTML5Translator, node: attributetabletitle) -> None:
     self.body.append(self.starttag(node, "span"))
 
 
-def visit_attributetablebadge_node(
-    self: HTML5Translator, node: attributetablebadge
-) -> None:
+def visit_attributetablebadge_node(self: HTML5Translator, node: attributetablebadge) -> None:
     attributes = {
         "class": "py-attribute-table-badge",
         "title": node["badge-type"],
@@ -78,27 +72,19 @@ def depart_attributetable_node(self: HTML5Translator, _node: attributetable) -> 
     self.body.append("</div>")
 
 
-def depart_attributetablecolumn_node(
-    self: HTML5Translator, _node: attributetablecolumn
-) -> None:
+def depart_attributetablecolumn_node(self: HTML5Translator, _node: attributetablecolumn) -> None:
     self.body.append("</div>")
 
 
-def depart_attributetabletitle_node(
-    self: HTML5Translator, _node: attributetabletitle
-) -> None:
+def depart_attributetabletitle_node(self: HTML5Translator, _node: attributetabletitle) -> None:
     self.body.append("</span>")
 
 
-def depart_attributetablebadge_node(
-    self: HTML5Translator, _node: attributetablebadge
-) -> None:
+def depart_attributetablebadge_node(self: HTML5Translator, _node: attributetablebadge) -> None:
     self.body.append("</span>")
 
 
-def depart_attributetable_item_node(
-    self: HTML5Translator, _node: attributetable_item
-) -> None:
+def depart_attributetable_item_node(self: HTML5Translator, _node: attributetable_item) -> None:
     self.body.append("</li>")
 
 
@@ -220,9 +206,7 @@ def process_attributetable(app: Sphinx, doctree: document, _fromdocname: str) ->
             if not subitems:
                 continue
 
-            table.append(
-                class_results_to_node(label, sorted(subitems, key=lambda c: c.label))
-            )
+            table.append(class_results_to_node(label, sorted(subitems, key=lambda c: c.label)))
 
         table["python-class"] = fullname
 
@@ -289,9 +273,7 @@ def get_class_results(
     return groups
 
 
-def class_results_to_node(
-    key: str, elements: list[TableElement]
-) -> attributetablecolumn:
+def class_results_to_node(key: str, elements: list[TableElement]) -> attributetablecolumn:
     title = attributetabletitle(key, key)
     ul = nodes.bullet_list("")
     for element in elements:
@@ -314,9 +296,7 @@ def class_results_to_node(
 
 def setup(app: Sphinx) -> None:
     app.add_directive("attributetable", PyAttributeTable)
-    app.add_node(
-        attributetable, html=(visit_attributetable_node, depart_attributetable_node)
-    )
+    app.add_node(attributetable, html=(visit_attributetable_node, depart_attributetable_node))
     app.add_node(
         attributetablecolumn,
         html=(visit_attributetablecolumn_node, depart_attributetablecolumn_node),

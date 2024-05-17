@@ -58,9 +58,7 @@ class Commands(bytes, Enum):
     @staticmethod
     def set(key: str, value: SupportedTypes) -> bytes:
         serializer: Serializer = Serializer()
-        command: str = (
-            f"*3\r\n$3\r\nSET\r\n${len(key)}\r\n{key}\r\n{serializer.process(value)}\x04"
-        )
+        command: str = f"*3\r\n$3\r\nSET\r\n${len(key)}\r\n{key}\r\n{serializer.process(value)}\x04"
         return command.encode()
 
     @staticmethod

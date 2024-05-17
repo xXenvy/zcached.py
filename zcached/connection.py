@@ -180,9 +180,7 @@ class Connection:
             Bytes to send.
         """
         if self._lock.locked():
-            logging.debug(
-                f"{self.id} -> Waiting for the thread lock to become available."
-            )
+            logging.debug(f"{self.id} -> Waiting for the thread lock to become available.")
 
         with self._lock:
             try:
@@ -244,9 +242,7 @@ class Connection:
                 if backoff.total >= self.timeout_limit:
                     return Result.fail(Errors.TimeoutLimit.value)
 
-                logging.debug(
-                    f"{self.id} -> There is no data in the socket. Timeout: {timeout}s."
-                )
+                logging.debug(f"{self.id} -> There is no data in the socket. Timeout: {timeout}s.")
                 sleep(timeout)
                 continue
 

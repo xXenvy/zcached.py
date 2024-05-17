@@ -82,9 +82,9 @@ class AsyncConnection(Connection, Generic[ProtocolT]):
         )
         self.loop: asyncio.AbstractEventLoop = loop or asyncio.get_event_loop()
 
-        self._protocol_type: Type[ProtocolT] = (
+        self._protocol_type: Type[ProtocolT] = (  # pyright: ignore
             protocol_type or asyncio.StreamReaderProtocol
-        )  # pyright: ignore
+        )
         self._protocol: ProtocolT | None = None
 
         self._reader: asyncio.StreamReader | None = None

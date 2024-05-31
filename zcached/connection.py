@@ -157,6 +157,8 @@ class Connection:
         """
         Method to receive the response from the server.
         None if there is no data in the socket yet.
+
+        NOT THREAD SAFE.
         """
         try:
             data: bytes = self.socket.recv(self.buffer_size)
@@ -180,8 +182,6 @@ class Connection:
         if self._lock.locked():
             logging.debug(f"{self.id} -> Waiting for the thread lock to become available.")
 
-        self._pending_requests += 1
-
         with self._lock:
             try:
                 logging.debug(f"{self.id} -> Sending data to the server -> %s", data)
@@ -189,8 +189,10 @@ class Connection:
             except (BrokenPipeError, OSError):
                 if not self.reconnect:
                     return Result.fail(Errors.ConnectionClosed.value)
-
                 return self.try_reconnect()
+            finally:
+                if self._pending_requests >= 1:
+                    self._pending_requests -= 1
 
             result: Result = self.wait_for_response()
             if not self.reconnect or result.error is None:
@@ -227,45 +229,36 @@ class Connection:
 
         NOT THREAD SAFE.
         """
-        backoff: ExponentialBackoff = ExponentialBackoff(0.1, 1.5, 0.5)
+        backoff: ExponentialBackoff = ExponentialBackoff(0.01, 3, 0.5)
+        total_data: bytes = bytes()
 
-        total_bytes: bytes = bytes()
-        transfer_complete: bool = False
+        # By doing this, we should receive the data at the first recv, without waiting for the backoff.
+        sleep(0.001)
 
         for timeout in backoff:
             data: bytes | None = self.receive()
 
             if not isinstance(data, bytes):
-                if len(total_bytes) > 0:
-                    # If we already have some data, and this iteration gave us None,
-                    # it means that the data transfer has been completed.
-                    transfer_complete = True
-                else:
-                    # We haven't received any data yet.
-                    logging.debug(f"{self.id} -> There is no data in the socket. Timeout: {timeout}s.")
-                    if backoff.total >= float(self.timeout_limit):
-                        logging.error(f"{self.id} -> The waiting time limit for a response has been reached.")
-                        return Result.fail(Errors.TimeoutLimit.value)
+                if backoff.total >= self.timeout_limit:
+                    return Result.fail(Errors.TimeoutLimit.value)
 
-                    sleep(timeout)
-                    continue
-
-            if transfer_complete:
-                if self._pending_requests >= 1:
-                    self._pending_requests -= 1
-
-                # If the first byte is "-", it means that the response is an error.
-                if total_bytes.startswith(b"-"):
-                    error_message: str = total_bytes.decode()[1:-2]
-                    return Result.fail(error_message)
-
-                return Result.ok(total_bytes)
+                logging.debug(f"{self.id} -> There is no data in the socket. Timeout: {timeout}s.")
+                sleep(timeout)
+                continue
 
             if len(data) == 0:  # type: ignore
                 # When socket lose connection to the server it receives empty bytes.
                 return Result.fail(Errors.ConnectionClosed.value)
 
-            total_bytes += data  # type: ignore
+            total_data += data  # type: ignore
+
+            if total_data.endswith(b"\x03"):  # Received complete data.
+                # If the first byte is "-", it means that the response is an error.
+                if total_data.startswith(b"-"):
+                    error_message: str = total_data.decode()[1:-3]
+                    return Result.fail(error_message)
+
+                return Result.ok(total_data[:-1])
 
             # ExponentialBackoff should be increased only when we receive None.
             backoff.reset()

@@ -259,7 +259,7 @@ class Connection:
 
             total_data += data  # type: ignore
 
-            if total_data.endswith(b"\x04"):  # Received complete data.
+            if total_data.endswith(b"\x03"):  # Received complete data.
                 # If the first byte is "-", it means that the response is an error.
                 if total_data.startswith(b"-"):
                     error_message: str = total_data.decode()[1:-3]

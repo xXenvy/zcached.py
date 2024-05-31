@@ -278,7 +278,7 @@ class AsyncConnection(Connection, Generic[ProtocolT]):
 
         total_data: bytes = bytes()
 
-        while not total_data.endswith(b"\x04"):
+        while not total_data.endswith(b"\x03"):
             try:
                 data: bytes | None = await self.receive(
                     timeout_limit=self.timeout_limit

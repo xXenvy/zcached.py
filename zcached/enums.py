@@ -38,16 +38,16 @@ class Errors(str, Enum):
 
 
 class Commands(bytes, Enum):
-    PING = b"*1\r\n$4\r\nPING\r\n\x03"
-    FLUSH = b"*1\r\n$5\r\nFLUSH\r\n\x03"
-    DB_SIZE = b"*1\r\n$6\r\nDBSIZE\r\n\x03"
-    SAVE = b"*1\r\n$4\r\nSAVE\r\n\x03"
-    KEYS = b"*1\r\n$4\r\nKEYS\r\n\x03"
-    LAST_SAVE = b"*1\r\n$8\r\nLASTSAVE\r\n\x03"
+    PING = b"*1\r\n$4\r\nPING\r\n\x04"
+    FLUSH = b"*1\r\n$5\r\nFLUSH\r\n\x04"
+    DB_SIZE = b"*1\r\n$6\r\nDBSIZE\r\n\x04"
+    SAVE = b"*1\r\n$4\r\nSAVE\r\n\x04"
+    KEYS = b"*1\r\n$4\r\nKEYS\r\n\x04"
+    LAST_SAVE = b"*1\r\n$8\r\nLASTSAVE\r\n\x04"
 
     @staticmethod
     def get(key: str) -> bytes:
-        return f"*2\r\n$3\r\nGET\r\n${len(key)}\r\n{key}\r\n\x03".encode()
+        return f"*2\r\n$3\r\nGET\r\n${len(key)}\r\n{key}\r\n\x04".encode()
 
     @staticmethod
     def mget(*keys: str) -> bytes:
@@ -55,13 +55,13 @@ class Commands(bytes, Enum):
         for key in keys:
             command += f"${len(key)}\r\n{key}\r\n"
 
-        return (command + "\x03").encode()
+        return (command + "\x04").encode()
 
     @staticmethod
     def set(key: str, value: SupportedTypes) -> bytes:
         serializer: Serializer = Serializer()
         command: str = (
-            f"*3\r\n$3\r\nSET\r\n${len(key)}\r\n{key}\r\n{serializer.process(value)}\x03"
+            f"*3\r\n$3\r\nSET\r\n${len(key)}\r\n{key}\r\n{serializer.process(value)}\x04"
         )
         return command.encode()
 
@@ -73,11 +73,11 @@ class Commands(bytes, Enum):
         for key, value in params.items():
             command += f"${len(key)}\r\n{key}\r\n{serializer.process(value)}"
 
-        return (command + "\x03").encode()
+        return (command + "\x04").encode()
 
     @staticmethod
     def delete(key: str) -> bytes:
-        return f"*2\r\n$6\r\nDELETE\r\n${len(key)}\r\n{key}\r\n\x03".encode()
+        return f"*2\r\n$6\r\nDELETE\r\n${len(key)}\r\n{key}\r\n\x04".encode()
 
     def __repr__(self) -> str:
         return f"{self.value}"

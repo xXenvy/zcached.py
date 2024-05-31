@@ -97,9 +97,7 @@ class ConnectionPool:
 
     def close(self) -> None:
         """Closes all connected connections in the pool."""
-        logger.info(
-            "Closing: %s connections in the pool", len(self.connected_connections)
-        )
+        logger.info("Closing: %s connections in the pool", len(self.connected_connections))
         for connection in self.connected_connections:
             self.run_in_thread(func=connection.close)
             # We don't care about result.
@@ -116,9 +114,7 @@ class ConnectionPool:
         size:
             The number of connections to add to the pool.
         """
-        return self.extend_pool_by_connections(
-            [self._connection_factory() for _ in range(size)]
-        )
+        return self.extend_pool_by_connections([self._connection_factory() for _ in range(size)])
 
     def extend_pool_by_connections(self, connections: Iterable[Connection]) -> None:
         """
@@ -130,9 +126,7 @@ class ConnectionPool:
         connections:
             An iterable of existing connections to add to the pool.
         """
-        threads: list[Thread] = [
-            self.run_in_thread(func=conn.connect) for conn in connections
-        ]
+        threads: list[Thread] = [self.run_in_thread(func=conn.connect) for conn in connections]
 
         self._connections.extend(connections)
         self._pool_size = len(self._connections)
@@ -159,18 +153,14 @@ class ConnectionPool:
         connections: List[Connection] = (
             self.broken_connections if only_broken_connections else self.connections
         )
-        threads: List[Thread] = [
-            self.run_in_thread(func=conn.try_reconnect) for conn in connections
-        ]
+        threads: List[Thread] = [self.run_in_thread(func=conn.try_reconnect) for conn in connections]
 
         for thread in threads:
             thread.join()
 
         return len(self.connected_connections)
 
-    def reduce_pool_connections(
-        self, amount: int, delete_pending_connections: bool = False
-    ) -> None:
+    def reduce_pool_connections(self, amount: int, delete_pending_connections: bool = False) -> None:
         """
         Reduces the size of the connection pool by a specified amount.
         By default, the method first removes non-working connections,
@@ -252,9 +242,7 @@ class ConnectionPool:
         return connections[0]
 
     @staticmethod
-    def run_in_thread(
-        func: Callable[Param, Any], *args: Param.args, **kwargs: Param.kwargs
-    ) -> Thread:
+    def run_in_thread(func: Callable[Param, Any], *args: Param.args, **kwargs: Param.kwargs) -> Thread:
         """
         Method to run function in thread.
 
